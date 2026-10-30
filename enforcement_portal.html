@@ -289,26 +289,12 @@
   </div>
 
   <div class="scan-box">
-    <label for="plateInput">Enter or scan license plate</label>
+    <label for="plateInput">Enter full or partial plate</label>
     <div class="scan-row">
       <input type="text" id="plateInput" placeholder="e.g. ABC512" maxlength="10">
       <button id="checkBtn" onclick="checkPlate()">Check</button>
     </div>
-    <div class="scan-hint">Checks the plate against active parking permits for this property.</div>
-  </div>
-
-  <div class="partial-toggle">
-    <a onclick="togglePartialSearch()">Can't read the full plate? Search by partial plate &rarr;</a>
-  </div>
-
-  <div class="partial-search-box" id="partialSearchBox">
-    <label for="partialInput">Enter any part of the plate</label>
-    <div class="scan-row">
-      <input type="text" id="partialInput" placeholder="e.g. 512" maxlength="10">
-      <button id="partialSearchBtn" onclick="searchPartialPlate()">Search</button>
-    </div>
-    <div class="scan-hint">Shows every permit on this property whose plate contains what you enter -- across all statuses, so you can see the full picture.</div>
-    <div class="partial-results" id="partialResults"></div>
+    <div class="scan-hint">Checks the plate against this property's permits, and lists plates on file that contain what you typed.</div>
   </div>
 
   <div class="auth-result" id="authResult"></div>
@@ -1412,7 +1398,14 @@ async function checkPlate(){
   btn.disabled = true;
 
   try{
-    currentPlateInfo = await api('GET', `/instances/${pat_selectedInstance.id}/check-plate?plate=${encodeURIComponent(raw)}`);
+    const [info, matches] = await Promise.all([
+      api('GET', `/instances/${pat_selectedInstance.id}/check-plate?plate=${encodeURIComponent(raw)}`),
+      raw.length >= 2
+        ? api('GET', `/instances/${pat_selectedInstance.id}/search-plates?partial=${encodeURIComponent(raw)}`).catch(() => [])
+        : Promise.resolve([]),
+    ]);
+    currentPlateInfo = info;
+    currentMatches = (matches || []).filter(m => m.plate !== raw);
   }catch(e){
     alert(e.message);
     btn.disabled = false;
@@ -1439,13 +1432,14 @@ async function checkPlate(){
     let reason;
     if(currentPlateInfo.reason === 'expired') reason = `Permit for Unit ${currentPlateInfo.unit_code} expired ${fmtDate(currentPlateInfo.end_date)}.`;
     else if(currentPlateInfo.reason === 'future') reason = `Permit for Unit ${currentPlateInfo.unit_code} does not start until ${fmtDate(currentPlateInfo.start_date)}.`;
-    else reason = 'No permit found for this plate.';
+    else reason = currentMatches.length ? `No permit for exactly "${raw}". If that's only part of the plate, check the list below.` : 'No permit found for this plate.';
 
     resultEl.className = 'auth-result unauthorized';
     resultEl.innerHTML = `
       <div class="auth-headline">&#10060; UNAUTHORIZED</div>
       <div class="auth-detail">${reason}</div>
       ${repeatNote}
+      ${matchesHtml(raw)}
     `;
     resultEl.style.display = 'block';
     formEl.style.display = 'block';
@@ -1454,83 +1448,34 @@ async function checkPlate(){
   }
 }
 
+// Plates on file that contain what was typed (other than an exact match),
+// so a partly-read plate can be found with the same single Check.
+let currentMatches = [];
+function matchesHtml(raw){
+  if(!currentMatches.length) return '';
+  return `<div class="partial-results" style="margin-top:14px;">
+    <div class="auth-detail" style="font-weight:700;">Plates on file containing "${raw}" (tap one to check it):</div>
+    <table>
+      <thead><tr><th>Plate</th><th>Status</th><th>Unit</th><th>Type</th><th>Guest</th></tr></thead>
+      <tbody>${currentMatches.map(m => `
+        <tr style="cursor:pointer;" onclick="selectPartialMatch('${m.plate.replace(/'/g, "\\'")}')">
+          <td><b>${m.plate}</b></td>
+          <td><span class="status-badge status-${m.status}">${m.status}</span></td>
+          <td>${m.unit_code}</td><td>${m.permit_type}</td><td>${m.guest_name || '\u2014'}</td>
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
 document.getElementById('plateInput').addEventListener('keydown', e=>{
   if(e.key === 'Enter') checkPlate();
 });
 
-function togglePartialSearch(){
-  const box = document.getElementById('partialSearchBox');
-  const showing = box.style.display === 'block';
-  box.style.display = showing ? 'none' : 'block';
-  if(!showing) document.getElementById('partialInput').focus();
-}
 
-async function searchPartialPlate(){
-  const raw = document.getElementById('partialInput').value.trim().toUpperCase();
-  const resultsEl = document.getElementById('partialResults');
-  const btn = document.getElementById('partialSearchBtn');
-  if(raw.length < 2){
-    resultsEl.innerHTML = `<div class="partial-no-results">Enter at least 2 characters to search.</div>`;
-    return;
-  }
-  btn.disabled = true;
-  let matches;
-  try{
-    matches = await api('GET', `/instances/${pat_selectedInstance.id}/search-plates?partial=${encodeURIComponent(raw)}`);
-  }catch(e){
-    resultsEl.innerHTML = `<div class="partial-no-results">${e.message}</div>`;
-    btn.disabled = false;
-    return;
-  }
-  btn.disabled = false;
-  if(!matches.length){
-    resultsEl.innerHTML = `<div class="partial-no-results">No plates on file match "${raw}".</div>` + partialCiteButton(raw);
-    return;
-  }
-  resultsEl.innerHTML = `
-    <table>
-      <thead><tr><th>Plate</th><th>Status</th><th>Unit</th><th>Type</th><th>Guest</th></tr></thead>
-      <tbody>
-        ${matches.map(m => `
-          <tr style="cursor:pointer;" onclick="selectPartialMatch('${m.plate.replace(/'/g, "\\'")}')">
-            <td><b>${m.plate}</b></td>
-            <td><span class="status-badge status-${m.status}">${m.status}</span></td>
-            <td>${m.unit_code}</td>
-            <td>${m.permit_type}</td>
-            <td>${m.guest_name || '\u2014'}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
-    <div class="scan-hint">Tap a row to check that plate in full above.</div>
-  ` + partialCiteButton(raw);
-}
 
-function partialCiteButton(raw){
-  const safe = raw.replace(/[^A-Z0-9 -]/g, '');
-  return `<div class="partial-cite"><button type="button" onclick="startPartialCitation('${safe}')">Issue a citation (you'll enter the full plate)</button></div>`;
-}
 
 // Start a citation from a partial search. A partial plate is never saved:
 // the officer must enter the full plate in the confirm step.
 let partialMode = false;
-function startPartialCitation(raw){
-  currentPlate = raw;
-  currentPlateInfo = null;
-  partialMode = true;
-  document.getElementById('partialSearchBox').style.display = 'none';
-  document.getElementById('plateInput').value = raw;
-  document.getElementById('confirmBox').style.display = 'none';
-  const resultEl = document.getElementById('authResult');
-  resultEl.className = 'auth-result partial';
-  resultEl.innerHTML = `
-    <div class="auth-headline">&#9888; PARTIAL PLATE: ${raw}</div>
-    <div class="auth-detail">Read the full plate from the vehicle. You'll enter it, and it will be checked against permits, before the citation is issued.</div>`;
-  resultEl.style.display = 'block';
-  document.getElementById('citationForm').style.display = 'block';
-  document.getElementById('citationError').style.display = 'none';
-  updateFinePreview();
-  document.getElementById('citationForm').scrollIntoView({behavior: 'smooth', block: 'start'});
-}
 
 // ---------- Issue Citation: confirm / edit the plate first ----------
 let confirmCheckedPlate = null;   // a plate re-checked in this dialog and found to have a valid permit
@@ -1549,7 +1494,7 @@ function openPlateConfirm(){
   document.getElementById('plateConfirmInput').placeholder = partialMode ? `Full plate (you searched ${currentPlate})` : '';
   document.getElementById('plateConfirmHint').textContent = partialMode
     ? `Enter the complete plate exactly as it appears on the vehicle. You searched for "${currentPlate}".`
-    : 'Make sure this matches the vehicle exactly.';
+    : 'Make sure this is the complete plate, exactly as it appears on the vehicle. A partial plate can\'t be saved with a citation.';
   document.getElementById('plateConfirmSummary').innerHTML =
     `<div><b>Violation</b> ${t ? t.name : '\u2014'}</div>` +
     `<div><b>Fine</b> ${t ? fmtMoney(t.fine) : '\u2014'}</div>` +
@@ -1603,8 +1548,8 @@ async function confirmAndIssue(){
 
 function selectPartialMatch(plate){
   document.getElementById('plateInput').value = plate;
-  document.getElementById('partialSearchBox').style.display = 'none';
   checkPlate();
+  window.scrollTo({top: document.getElementById('plateInput').getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth'});
 }
 
 document.getElementById('plateConfirmInput').addEventListener('keydown', e=>{
@@ -1615,9 +1560,7 @@ document.getElementById('plateConfirmInput').addEventListener('input', () => {
   document.getElementById('plateConfirmBtn').textContent = 'Confirm & Issue';
 });
 
-document.getElementById('partialInput').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') searchPartialPlate();
-});
+
 
 function cancelCitation(){
   document.getElementById('citationForm').style.display = 'none';
