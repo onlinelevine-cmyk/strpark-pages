@@ -150,6 +150,15 @@
   .fine-preview{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--coral-dark);font-size:15px;margin-top:4px;}
   .scope-patrol .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
   .modal-btn-primary:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .auth-result.partial{background:#FFF4CC;border:2px solid #B07D00;}
+  .auth-result.partial .auth-headline{color:#7A5A00;}
+  .partial-cite{margin-top:14px;text-align:center;}
+  .partial-cite button{font-family:inherit;font-size:14px;font-weight:700;padding:11px 16px;border-radius:8px;border:2px solid var(--auth-red);background:#fff;color:var(--auth-red);cursor:pointer;width:100%;}
+  .plate-confirm-input{width:100%;font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;letter-spacing:.08em;text-align:center;text-transform:uppercase;padding:12px;border:2px solid var(--gray-line);border-radius:10px;}
+  .plate-confirm-input:focus{outline:none;border-color:var(--coral);}
+  .confirm-summary{font-size:13.5px;line-height:1.7;margin:14px 0 4px;}
+  .confirm-summary b{display:inline-block;min-width:90px;color:var(--gray-mid);font-weight:600;}
+  .confirm-warn{background:#FFF4CC;color:#7A5A00;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:600;margin-top:12px;display:none;}
   .confirm-box{background:var(--auth-green-bg);border:1px solid var(--auth-green);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--gray-ink);display:none;}
   .log-section h2{font-size:14px;font-weight:800;margin:0 0 10px;}
   .scope-patrol thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-mid);font-weight:700;background:#FAFAF9;padding:9px 10px;border-bottom:1px solid var(--gray-line);}
@@ -319,7 +328,7 @@
     </div>
     <div class="modal-actions">
       <button class="modal-btn-secondary" onclick="cancelCitation()">Cancel</button>
-      <button class="modal-btn-primary" id="issueBtn" onclick="submitCitation()">Issue Citation</button>
+      <button class="modal-btn-primary" id="issueBtn" onclick="openPlateConfirm()">Issue Citation</button>
     </div>
   </div>
 
@@ -521,6 +530,27 @@
         <button class="modal-btn-secondary" onclick="closeDisputeModal()">Close</button>
         <button class="modal-btn-primary" id="declineBtn" onclick="resolveDispute('deny')">Decline dispute (fine stands)</button>
         <button class="modal-btn-void" id="approveBtn" onclick="resolveDispute('approve')">Accept dispute (dismiss citation)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="plateConfirmOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h2>Confirm the license plate</h2><div class="sub">Check it against the vehicle, fix it if needed, then issue.</div></div>
+      <button class="modal-close" onclick="closeModal('plateConfirmOverlay')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-error" id="plateConfirmError"></div>
+      <label for="plateConfirmInput" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;">License plate</label>
+      <input type="text" id="plateConfirmInput" class="plate-confirm-input" maxlength="10" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <div class="scan-hint" id="plateConfirmHint" style="margin-top:8px;"></div>
+      <div class="confirm-summary" id="plateConfirmSummary"></div>
+      <div class="confirm-warn" id="plateConfirmWarn"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('plateConfirmOverlay')">Back</button>
+        <button class="modal-btn-primary" id="plateConfirmBtn" onclick="confirmAndIssue()">Confirm &amp; Issue</button>
       </div>
     </div>
   </div>
@@ -1372,6 +1402,7 @@ async function checkPlate(){
   const raw = document.getElementById('plateInput').value.trim().toUpperCase();
   if(!raw) return;
   currentPlate = raw;
+  partialMode = false;
 
   const resultEl = document.getElementById('authResult');
   const formEl = document.getElementById('citationForm');
@@ -1453,7 +1484,7 @@ async function searchPartialPlate(){
   }
   btn.disabled = false;
   if(!matches.length){
-    resultsEl.innerHTML = `<div class="partial-no-results">No plates on file match "${raw}".</div>`;
+    resultsEl.innerHTML = `<div class="partial-no-results">No plates on file match "${raw}".</div>` + partialCiteButton(raw);
     return;
   }
   resultsEl.innerHTML = `
@@ -1471,7 +1502,103 @@ async function searchPartialPlate(){
       </tbody>
     </table>
     <div class="scan-hint">Tap a row to check that plate in full above.</div>
-  `;
+  ` + partialCiteButton(raw);
+}
+
+function partialCiteButton(raw){
+  const safe = raw.replace(/[^A-Z0-9 -]/g, '');
+  return `<div class="partial-cite"><button type="button" onclick="startPartialCitation('${safe}')">Issue a citation (you'll enter the full plate)</button></div>`;
+}
+
+// Start a citation from a partial search. A partial plate is never saved:
+// the officer must enter the full plate in the confirm step.
+let partialMode = false;
+function startPartialCitation(raw){
+  currentPlate = raw;
+  currentPlateInfo = null;
+  partialMode = true;
+  document.getElementById('partialSearchBox').style.display = 'none';
+  document.getElementById('plateInput').value = raw;
+  document.getElementById('confirmBox').style.display = 'none';
+  const resultEl = document.getElementById('authResult');
+  resultEl.className = 'auth-result partial';
+  resultEl.innerHTML = `
+    <div class="auth-headline">&#9888; PARTIAL PLATE: ${raw}</div>
+    <div class="auth-detail">Read the full plate from the vehicle. You'll enter it, and it will be checked against permits, before the citation is issued.</div>`;
+  resultEl.style.display = 'block';
+  document.getElementById('citationForm').style.display = 'block';
+  document.getElementById('citationError').style.display = 'none';
+  updateFinePreview();
+  document.getElementById('citationForm').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+// ---------- Issue Citation: confirm / edit the plate first ----------
+let confirmCheckedPlate = null;   // a plate re-checked in this dialog and found to have a valid permit
+function openPlateConfirm(){
+  const errEl = document.getElementById('citationError');
+  if(!currentPlate){
+    errEl.textContent = 'Check a plate before issuing a citation.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const typeSel = document.getElementById('violationType');
+  const t = pat_citationTypes.find(x => String(x.id) === String(typeSel.value));
+  const lotSel = document.getElementById('lotSelect');
+  const lotName = lotSel && lotSel.value ? lotSel.options[lotSel.selectedIndex].text : 'None';
+  document.getElementById('plateConfirmInput').value = partialMode ? '' : currentPlate;
+  document.getElementById('plateConfirmInput').placeholder = partialMode ? `Full plate (you searched ${currentPlate})` : '';
+  document.getElementById('plateConfirmHint').textContent = partialMode
+    ? `Enter the complete plate exactly as it appears on the vehicle. You searched for "${currentPlate}".`
+    : 'Make sure this matches the vehicle exactly.';
+  document.getElementById('plateConfirmSummary').innerHTML =
+    `<div><b>Violation</b> ${t ? t.name : '\u2014'}</div>` +
+    `<div><b>Fine</b> ${t ? fmtMoney(t.fine) : '\u2014'}</div>` +
+    `<div><b>Lot</b> ${lotName}</div>` +
+    `<div><b>Photos</b> ${selectedPhotos.length}</div>`;
+  document.getElementById('plateConfirmError').style.display = 'none';
+  document.getElementById('plateConfirmWarn').style.display = 'none';
+  document.getElementById('plateConfirmBtn').textContent = 'Confirm & Issue';
+  confirmCheckedPlate = null;
+  document.getElementById('plateConfirmOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('plateConfirmInput').focus(), 50);
+}
+
+async function confirmAndIssue(){
+  const input = document.getElementById('plateConfirmInput');
+  const plate = input.value.trim().toUpperCase().replace(/\s+/g, '');
+  const errEl = document.getElementById('plateConfirmError');
+  const warnEl = document.getElementById('plateConfirmWarn');
+  const btn = document.getElementById('plateConfirmBtn');
+  errEl.style.display = 'none';
+  if(plate.length < 2 || (partialMode && plate === currentPlate)){
+    errEl.textContent = partialMode ? 'Enter the full plate. A partial plate can\'t be saved with a citation.' : 'Enter the full plate.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(partialMode && plate.length <= currentPlate.length){
+    errEl.textContent = `That looks like a partial plate. Enter the full plate (longer than "${currentPlate}").`;
+    errEl.style.display = 'block';
+    return;
+  }
+  // A plate changed here (or entered after a partial search) hasn't been checked yet: check it now.
+  if((partialMode || plate !== currentPlate) && confirmCheckedPlate !== plate){
+    btn.disabled = true;
+    try{
+      const info = await api('GET', `/instances/${pat_selectedInstance.id}/check-plate?plate=${encodeURIComponent(plate)}`);
+      if(info.authorized){
+        confirmCheckedPlate = plate;
+        warnEl.innerHTML = `&#9989; ${plate} has a valid permit (Unit ${info.unit_code}, through ${fmtDate(info.end_date)}). If that's the right plate, no citation is needed: tap Back. Otherwise fix the plate, or tap Issue anyway.`;
+        warnEl.style.display = 'block';
+        btn.textContent = 'Issue anyway';
+        return;
+      }
+    }catch(e){ /* couldn't check: let the officer decide */ }
+    finally{ btn.disabled = false; }
+  }
+  currentPlate = plate;
+  partialMode = false;
+  closeModal('plateConfirmOverlay');
+  await submitCitation();
 }
 
 function selectPartialMatch(plate){
@@ -1479,6 +1606,14 @@ function selectPartialMatch(plate){
   document.getElementById('partialSearchBox').style.display = 'none';
   checkPlate();
 }
+
+document.getElementById('plateConfirmInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') confirmAndIssue();
+});
+document.getElementById('plateConfirmInput').addEventListener('input', () => {
+  document.getElementById('plateConfirmWarn').style.display = 'none';
+  document.getElementById('plateConfirmBtn').textContent = 'Confirm & Issue';
+});
 
 document.getElementById('partialInput').addEventListener('keydown', e=>{
   if(e.key === 'Enter') searchPartialPlate();
@@ -1490,6 +1625,7 @@ function cancelCitation(){
   document.getElementById('plateInput').value = '';
   currentPlate = null;
   currentPlateInfo = null;
+  partialMode = false;
   selectedPhotos = [];
   renderPhotoPreviews();
 }
@@ -1581,6 +1717,7 @@ async function submitCitation(){
     const t = pat_citationTypes.find(x=>String(x.id)===String(citation_type_id));
     const confirmEl = document.getElementById('confirmBox');
     confirmEl.innerHTML = `<b>Citation issued.</b> ${currentPlate} &middot; ${t.name} &middot; ${fmtMoney(t.fine)}.`;
+    partialMode = false;
     confirmEl.style.display = 'block';
 
     document.getElementById('citationForm').style.display = 'none';
