@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community Portal — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --ok:#2F7A4F; --ok-bg:#E4F3E8; --warn:#B8791A; --warn-bg:#FBF0DD; --bad:#B23B3B; --bad-bg:#FAE6E6; --new:#2A6F97; --new-bg:#E3EFF5;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:16px;flex-wrap:wrap;gap:16px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .report-title h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .report-title p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .masthead-right{text-align:right;font-size:12.5px;color:var(--gray-mid);}
+  .logout-btn{font-size:11.5px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+  .logout-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+
+  .sub-banner{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;line-height:1.5;}
+  .sub-banner.info{background:var(--new-bg);color:var(--new);}
+  .sub-banner.warn{background:var(--warn-bg);color:var(--warn);}
+  .sub-banner.bad{background:var(--bad-bg);color:var(--bad);}
+  .sub-banner.ok{background:var(--ok-bg);color:var(--ok);}
+  .sub-banner button{background:var(--coral);color:#fff;border:none;border-radius:6px;padding:9px 14px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
+
+  .tab-nav{display:flex;gap:22px;border-bottom:1px solid var(--gray-line);margin-bottom:20px;overflow-x:auto;}
+  .tab-btn{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--gray-mid);padding:10px 2px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+  .tab-btn.active{color:var(--coral-dark);border-bottom-color:var(--coral);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .subsection-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;flex-wrap:wrap;gap:10px;}
+  .subsection-head h2{font-size:15px;font-weight:800;margin:0;}
+  .section-gap{margin-top:28px;}
+  .hint{font-size:12.5px;color:var(--gray-mid);margin:-4px 0 12px;line-height:1.5;}
+  .add-btn{font-size:12.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-family:inherit;}
+  .add-btn:hover{background:var(--coral-dark);}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;overflow:hidden;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--gray-line);background:#FAFAF8;}
+  td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--gray-line);}
+  tr:last-child td{border-bottom:none;}
+  td.money{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .muted{color:var(--gray-mid);}
+  .edit-btn{font-size:11px;font-weight:600;color:var(--coral-dark);background:none;border:1px solid var(--coral-dark);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;margin-right:4px;}
+  .edit-btn:hover{background:var(--coral-tint);}
+  .del-btn{font-size:11px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;}
+  .del-btn:hover{border-color:var(--bad);color:var(--bad);}
+  .pill{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .pill-ok{background:var(--ok-bg);color:var(--ok);}
+  .pill-warn{background:var(--warn-bg);color:var(--warn);}
+  .pill-bad{background:var(--bad-bg);color:var(--bad);}
+  .pill-info{background:var(--new-bg);color:var(--new);}
+  .pill-gray{background:#EDEDED;color:#6E6E6E;}
+  .empty-row td{color:var(--gray-mid);text-align:center;padding:20px;}
+
+  .card{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:20px;margin-bottom:18px;}
+  .card h3{margin:0 0 4px;font-size:15px;font-weight:800;}
+  .card .hint{margin:2px 0 14px;}
+  .kv{display:grid;grid-template-columns:180px 1fr;gap:8px 16px;font-size:13.5px;margin-bottom:14px;}
+  .kv .k{color:var(--gray-mid);}
+  .img-slot{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;}
+  .img-preview{width:160px;height:100px;border:1px dashed var(--gray-line);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#FAFAF8;font-size:11.5px;color:var(--gray-mid);overflow:hidden;}
+  .img-preview img{max-width:100%;max-height:100%;object-fit:contain;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:6vh;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:#fff;border-radius:12px;width:480px;max-width:92vw;max-height:86vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--gray-line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h2{margin:0;font-size:16px;font-weight:800;}
+  .modal-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .modal-close{background:none;border:none;font-size:20px;color:var(--gray-mid);cursor:pointer;line-height:1;}
+  .modal-body{padding:20px 22px;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;flex:1;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field input,.modal-field select{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;width:100%;}
+  .modal-row{display:flex;gap:12px;}
+  .radio-line{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin-bottom:8px;cursor:pointer;}
+  .radio-line input{margin-top:3px;}
+  .modal-error{background:var(--bad-bg);color:var(--bad);border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .modal-success{background:var(--ok-bg);color:var(--ok);border-radius:6px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:14px;display:none;line-height:1.6;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .modal-btn-secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary{background:var(--coral);border:none;color:#fff;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary:hover{background:var(--coral-dark);}
+  .modal-btn-primary:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .modal-btn-danger{background:#fff;border:1px solid var(--bad);color:var(--bad);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;margin-right:auto;}
+
+  .login-wrap{max-width:380px;margin:12vh auto 0;padding:36px 32px;background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+  .login-wrap h1{font-size:19px;font-weight:800;margin:0 0 4px;}
+  .login-wrap p{font-size:12.5px;color:var(--gray-mid);margin:0 0 22px;line-height:1.5;}
+  .login-wrap p a{color:var(--coral-dark);}
+  .login-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:11px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;}
+  .login-btn:disabled{background:var(--gray-line);}
+  .loading-note{text-align:center;padding:60px 20px;color:var(--gray-mid);font-size:13px;}
+  #app,#loadingScreen{display:none;}
+  .footnote{margin-top:22px;font-size:11.5px;color:var(--gray-mid);display:flex;justify-content:space-between;border-top:1px solid var(--gray-line);padding-top:10px;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:18px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+
+  /* ---- Import (same as the Admin Portal's Import screen) ---- */
+  .impact-list{background:#FAFAF9;border:1px solid var(--gray-line);border-radius:8px;padding:10px 14px;margin:10px 0;max-height:220px;overflow-y:auto;}
+  .impact-list table{border:none;}
+  .impact-list thead th{background:transparent;}
+  .import-panel{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:22px;}
+  .col-req{font-size:12.5px;margin-bottom:14px;color:var(--gray-mid);}
+  .col-req .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--gray-ink);display:block;margin-bottom:4px;}
+  .col-req code{background:#F1EFEC;border:1px solid var(--gray-line);border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .warn-banner{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:12.5px;font-weight:600;margin-bottom:16px;line-height:1.5;}
+  .upload-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+  .template-link{font-size:12.5px;color:var(--coral-dark);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;}
+  .error-box{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:12px 14px;font-size:12.5px;margin-bottom:14px;}
+  .error-box ul{margin:6px 0 0;padding-left:20px;}
+  .diff-section{margin-bottom:18px;}
+  .diff-section h3{font-size:13px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px;}
+  .count-pill{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;}
+  .count-added{background:var(--new-bg);color:var(--new);}
+  .count-updated{background:var(--warn-bg);color:var(--warn);}
+  .count-unchanged{background:#EDEDED;color:#6E6E6E;}
+  .count-removed{background:var(--bad-bg);color:var(--bad);}
+  .old{color:var(--bad);text-decoration:line-through;}
+  .new{color:var(--ok);font-weight:600;}
+  .protected-tag{font-size:10px;font-weight:700;color:var(--bad);background:var(--bad-bg);padding:2px 7px;border-radius:20px;margin-left:6px;}
+  .success-banner{background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:12px 14px;font-size:12.5px;font-weight:600;margin-top:14px;display:none;white-space:pre-line;}
+  .scope-import table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--gray-line);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+  .scope-import thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-mid);font-weight:700;background:#FAFAF9;padding:8px 10px;border-bottom:1px solid var(--gray-line);white-space:nowrap;}
+  .scope-import tbody td{padding:8px 10px;font-size:12.5px;border-bottom:1px solid #EFEDEA;}
+  .scope-import .modal-btn-primary{background:var(--coral);border:none;color:#fff;padding:10px 20px;border-radius:6px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;}
+
+  /* ---- Phones ---- */
+  @media (max-width: 640px){
+    .wrap{padding:14px 12px 40px;}
+    input, select, textarea{font-size:16px !important;}
+    .login-wrap{margin:6vh 0 0;padding:28px 20px;}
+    .login-btn{padding:14px 16px;font-size:16px;}
+    .masthead{align-items:flex-start;gap:10px;}
+    .masthead-right{text-align:left;}
+    .logout-btn{padding:9px 14px;font-size:13px;}
+    .tab-btn{font-size:15px;padding:12px 2px;}
+    .add-btn{padding:12px 16px;font-size:15px;}
+    .subsection-head .add-btn{width:100%;}
+    .kv{grid-template-columns:1fr;gap:2px 0;}
+    .kv .k{margin-top:8px;}
+    #app > .tab-panel:not(.scope-import) table, #app > .tab-panel:not(.scope-import) table thead, #app > .tab-panel:not(.scope-import) table tbody,
+    #app > .tab-panel:not(.scope-import) table tr, #app > .tab-panel:not(.scope-import) table td{display:block;}
+    #app > .tab-panel:not(.scope-import) table{background:none;border:none;}
+    #app > .tab-panel:not(.scope-import) table thead{display:none;}
+    #app > .tab-panel:not(.scope-import) table tr{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:10px 14px;margin-bottom:10px;}
+    #app > .tab-panel:not(.scope-import) table td{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border:none !important;font-size:14px;text-align:right;word-break:break-word;}
+    #app > .tab-panel:not(.scope-import) table td::before{content:attr(data-label);color:var(--gray-mid);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:left;flex-shrink:0;padding-top:2px;}
+    #app > .tab-panel:not(.scope-import) table td:not([data-label])::before, #app > .tab-panel:not(.scope-import) table td[data-label=""]::before{content:none;}
+    #app > .tab-panel:not(.scope-import) table td.actions-cell{justify-content:flex-start;flex-wrap:wrap;gap:8px;padding-top:10px;}
+    #app > .tab-panel:not(.scope-import) table tr.empty-row{background:none;border:none;}
+    #app > .tab-panel:not(.scope-import) table tr.empty-row td{display:block;text-align:center;}
+    .edit-btn, .del-btn{font-size:14px;padding:9px 16px;margin:0;}
+    .modal-overlay{padding-top:0;align-items:stretch;}
+    .modal-box{width:100%;max-width:100%;max-height:100%;height:100%;border-radius:0;}
+    .modal-row{flex-direction:column;gap:0;}
+    .modal-field input, .modal-field select{padding:12px 10px;}
+    .modal-actions{flex-direction:column-reverse;}
+    .modal-actions button{width:100%;padding:14px;font-size:16px;margin:0;}
+    .sub-banner button{width:100%;padding:13px;font-size:15px;}
+    .footnote{flex-direction:column;gap:4px;}
+    .scope-import table{display:block;overflow-x:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginScreen">
+  <div class="login-wrap">
+    <h1>Community Portal</h1>
+    <p>Sign in to manage your community's parking. New to STRPark? <a href="signup.html">Sign up your community</a>.</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="modal-field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+    <div class="modal-field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <a href="set_password.html?forgot=1&amp;back=community_portal.html" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:#9C4A45;">Forgot password?</a>
+  </div>
+</div>
+
+<div class="wrap" id="loadingScreen"><div class="loading-note" id="loadingNote">Loading&hellip;</div></div>
+
+<div class="wrap" id="app">
+  <div class="masthead">
+    <div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div class="report-title">
+      <h1>Community Portal</h1>
+      <p id="communityLabel">&nbsp;</p>
+    </div></div>
+    <div class="masthead-right">
+      <div id="userLabel">&nbsp;</div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="sub-banner" id="subBanner"><span id="subBannerText"></span><button id="subBannerBtn" onclick="subBannerAction()">Add card</button></div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="fees" onclick="switchTab('fees')">Fees &amp; Rules</button>
+    <button class="tab-btn" data-tab="lots" onclick="switchTab('lots')">Parking Lots</button>
+    <button class="tab-btn" data-tab="agencies" onclick="switchTab('agencies')">Agencies</button>
+    <button class="tab-btn" data-tab="enforcement" onclick="switchTab('enforcement')">Enforcement</button>
+    <button class="tab-btn" data-tab="vehicles" onclick="switchTab('vehicles')">Service Vehicles</button>
+    <button class="tab-btn" data-tab="import" onclick="switchTab('import')">Import</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- ===== Fees & Rules ===== -->
+  <div class="tab-panel active" id="panel_fees">
+    <div class="subsection-head"><h2>Permit Types &amp; Fees</h2><button class="add-btn" onclick="openTypeEditor('permit', null)">+ Add Permit Type</button></div>
+    <p class="hint">Guests pay the fee online (plus a card processing fee) once you connect a payment account in Settings. Owner permits are always free.</p>
+    <table><thead><tr><th>Permit Type</th><th>Fee</th><th>Charged</th><th>Actions</th></tr></thead><tbody id="permitBody"></tbody></table>
+
+    <div class="subsection-head section-gap"><h2>Citation Types &amp; Fines</h2><button class="add-btn" onclick="openTypeEditor('citation', null)">+ Add Citation Type</button></div>
+    <table><thead><tr><th>Citation Type</th><th>Fine</th><th>Actions</th></tr></thead><tbody id="citationBody"></tbody></table>
+
+    <div class="subsection-head section-gap"><h2>Unit Types &amp; Details</h2><button class="add-btn" onclick="openTypeEditor('unit', null)">+ Add Unit Type</button></div>
+    <p class="hint">Max Active = Guest permits allowed at once per Unit of this type. Max Days = longest stay.</p>
+    <table><thead><tr><th>Unit Type</th><th>Max Active</th><th>Max Days</th><th>Check-in</th><th>Check-out</th><th>Early Arrive</th><th>Late Depart</th><th>Actions</th></tr></thead><tbody id="unitBody"></tbody></table>
+  </div>
+
+  <!-- ===== Parking Lots ===== -->
+  <div class="tab-panel" id="panel_lots">
+    <div class="subsection-head"><h2>Parking Lots</h2><button class="add-btn" onclick="openLotModal(null)">+ Add Parking Lot</button></div>
+    <p class="hint">Patrol officers pick the lot when they issue a citation.</p>
+    <table><thead><tr><th>Code</th><th>Name</th><th>Address</th><th>Contact</th><th>Phone</th><th>Actions</th></tr></thead><tbody id="lotsBody"></tbody></table>
+  </div>
+
+  <!-- ===== Agencies ===== -->
+  <div class="tab-panel" id="panel_agencies">
+    <div class="subsection-head"><h2>Rental Agencies</h2><button class="add-btn" onclick="openPartyModal('agency', null)">+ Add Agency</button></div>
+    <p class="hint">Owners can choose an Agency to manage guest permits for their Unit. The Agency's contact becomes its admin and can add their own staff.</p>
+    <table><thead><tr><th>Agency</th><th>Contact</th><th>Phone</th><th>Email</th><th>Max Vehicle Permits</th><th>Actions</th></tr></thead><tbody id="agenciesBody"></tbody></table>
+  </div>
+
+  <!-- ===== Enforcement ===== -->
+  <div class="tab-panel" id="panel_enforcement">
+    <div class="subsection-head"><h2>Enforcement Companies</h2><button class="add-btn" onclick="openPartyModal('enforcement', null)">+ Add Enforcement Company</button></div>
+    <p class="hint">The company that patrols your lots and issues citations. Its contact becomes its admin and adds their patrol officers. One company covers your community.</p>
+    <table><thead><tr><th>Company</th><th>Contact</th><th>Phone</th><th>Email</th><th>Covers Us</th><th>Actions</th></tr></thead><tbody id="enforcementBody"></tbody></table>
+  </div>
+
+  <!-- ===== Service Vehicles ===== -->
+  <div class="tab-panel" id="panel_vehicles">
+    <div class="subsection-head"><h2>Service Vehicle Permits</h2><button class="add-btn" onclick="openVehicleModal()">+ Register Service Vehicle</button></div>
+    <p class="hint">For independent housekeepers and repair contractors your Owners hire directly, with no Agency involved.</p>
+    <table><thead><tr><th>Business Name</th><th>Valid</th><th>Status</th><th>Actions</th></tr></thead><tbody id="vehiclesBody"></tbody></table>
+  </div>
+
+  <!-- ===== Import ===== -->
+  <div class="tab-panel scope-import" id="panel_import">
+<div class="tab-nav">
+    <button class="tab-btn active" id="imp_tabBtnUnits" onclick="imp_switchTab('units')">Import Units</button>
+    <button class="tab-btn" id="imp_tabBtnOwners" onclick="imp_switchTab('owners')">Import Owners</button>
+  </div>
+
+  <div class="tab-panel active" id="imp_panelUnits">
+    <div class="import-panel">
+      <div class="col-req">
+        <span class="label">Required CSV Columns</span>
+        <code>Unit ID</code>, <code>Unit Address</code>, <code>Unit Type</code>
+      </div>
+      <div class="warn-banner">&#9888; This is an upsert: Units in the file are added or updated (matched by Unit ID). Units already on file but missing from the upload are <em>not</em> deleted automatically &mdash; you'll review and choose which, if any, to remove after upload. Any Unit with existing Contacts or Permits is protected from removal unless you explicitly confirm.</div>
+      <div class="upload-row">
+        <input type="file" id="unitsFileInput" accept=".csv">
+        <button class="template-link" onclick="downloadTemplate('units')">Download CSV template</button>
+      </div>
+      <div id="unitsPreviewArea"></div>
+      <div id="unitsDiffArea"></div>
+      <div class="success-banner" id="unitsSuccessBanner"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="imp_panelOwners">
+    <div class="import-panel">
+      <div class="col-req">
+        <span class="label">Required CSV Columns</span>
+        <code>First name</code>, <code>Last name</code>, <code>Email</code>, <code>Phone</code>, <code>Unit</code>
+      </div>
+      <div class="warn-banner">&#9888; This is an upsert: Contacts in the file are added or updated (matched by Email). Contacts already on file but missing from the upload are <em>not</em> deleted automatically &mdash; you'll review and choose which, if any, to remove after upload. You cannot remove your own linked contact through this import.</div>
+      <div class="upload-row">
+        <input type="file" id="ownersFileInput" accept=".csv">
+        <button class="template-link" onclick="downloadTemplate('owners')">Download CSV template</button>
+      </div>
+      <div id="ownersPreviewArea"></div>
+      <div id="ownersDiffArea"></div>
+      <div class="success-banner" id="ownersSuccessBanner"></div>
+    </div>
+  </div>
+
+  
+  </div>
+
+  <!-- ===== Settings ===== -->
+  <div class="tab-panel" id="panel_settings">
+    <div class="card">
+      <div class="subsection-head"><h3>Subscription</h3></div>
+      <div class="kv" id="subDetails"></div>
+      <div class="btn-row" id="subActions"></div>
+      <div class="subsection-head section-gap"><h3>Billing history</h3></div>
+      <table><thead><tr><th>Billed</th><th>Period</th><th>Tier</th><th>Units</th><th>Amount</th><th>Status</th></tr></thead><tbody id="invoicesBody"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>Community Admins</h3>
+      <p class="hint">Everyone here can manage the whole community. New admins get an emailed invitation to choose their password.</p>
+      <table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th></th></tr></thead><tbody id="adminsBody"></tbody></table>
+      <div class="btn-row" style="margin-top:12px;flex-wrap:wrap;">
+        <input id="newAdminName" placeholder="Name" style="font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--gray-line);border-radius:6px;flex:1;min-width:150px;">
+        <input id="newAdminEmail" type="email" placeholder="Email" style="font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--gray-line);border-radius:6px;flex:1;min-width:180px;">
+        <button class="modal-btn-primary" id="addAdminBtn" onclick="addCommunityAdmin()">Invite admin</button>
+      </div>
+      <div class="modal-error" id="adminsError"></div>
+      <div id="adminsInvite" style="font-size:13px;line-height:1.5;margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>Community details</h3>
+      <p class="hint">Your community's name, address and main contact.</p>
+      <div class="kv" id="detailsView"></div>
+      <button class="edit-btn" onclick="openDetailsModal()">Edit details</button>
+    </div>
+
+    <div class="card">
+      <h3>Online payments</h3>
+      <p class="hint">Connect your HOA's payment account so guests pay permit fees online. Until then, permits are issued free. SIMULATED: no real money moves.</p>
+      <div id="payAccount" style="font-size:13.5px;margin-bottom:10px;"></div>
+      <div class="btn-row" id="payAccountActions"></div>
+      <div class="subsection-head section-gap"><h3>Payment history</h3></div>
+      <table><thead><tr><th>Date</th><th>For</th><th>Payer</th><th>Total</th><th>Status</th></tr></thead><tbody id="paymentsBody"></tbody></table>
+    </div>
+
+    <div class="card">
+      <h3>Branding</h3>
+      <p class="hint">JPG or PNG. Your logo appears at the top-left of every page for your community; the permit image is printed behind every permit; the footer appears at the bottom of every page.</p>
+      <div class="img-slot">
+        <div><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Logo</div>
+          <div class="img-preview" id="logoPreview">None</div>
+          <div class="btn-row"><input type="file" accept="image/jpeg,image/png" onchange="uploadImage('logo', this)"><button class="del-btn" onclick="removeImage('logo')">Remove</button></div></div>
+        <div><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Permit image</div>
+          <div class="img-preview" id="permitImgPreview">None</div>
+          <div class="btn-row"><input type="file" accept="image/jpeg,image/png" onchange="uploadImage('permit', this)"><button class="del-btn" onclick="removeImage('permit')">Remove</button></div></div>
+        <div><div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Footer logo</div>
+          <div class="img-preview" id="footerLogoPreview">None</div>
+          <div class="btn-row"><input type="file" accept="image/jpeg,image/png" onchange="uploadImage('footer', this)"><button class="del-btn" onclick="removeImage('footer')">Remove</button></div></div>
+      </div>
+      <div class="modal-field" style="max-width:520px;"><label for="footerTextInput">Footer text</label><input id="footerTextInput" maxlength="300" placeholder="e.g. Pine Ridge HOA &middot; 1 Pine Rd &middot; 530-555-0100"></div>
+      <button class="modal-btn-primary" onclick="saveFooterText()">Save footer text</button>
+    </div>
+  </div>
+
+  <div class="footnote"><span id="footCommunity">&nbsp;</span><span>STRPark Community Portal</span></div>
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<!-- ===== Modals ===== -->
+<div class="modal-overlay" id="typeModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="typeModalTitle">Edit</h2><div class="sub" id="typeModalSub"></div></div><button class="modal-close" onclick="closeModal('typeModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="typeModalError"></div>
+      <div id="typeModalBody"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-danger" id="typeDeleteBtn" onclick="deleteType()">Delete</button>
+        <button class="modal-btn-secondary" onclick="closeModal('typeModal')">Cancel</button>
+        <button class="modal-btn-primary" id="typeSaveBtn" onclick="saveType()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="lotModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="lotModalTitle">Add Parking Lot</h2></div><button class="modal-close" onclick="closeModal('lotModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="lotModalError"></div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="lCode">Lot code</label><input id="lCode" placeholder="e.g. MS1"></div>
+        <div class="modal-field"><label for="lName">Lot name</label><input id="lName" placeholder="e.g. Main Lot"></div>
+      </div>
+      <div class="modal-field"><label for="lStreet">Street</label><input id="lStreet"></div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="lCity">City</label><input id="lCity"></div>
+        <div class="modal-field"><label for="lState">State</label><input id="lState" maxlength="2"></div>
+        <div class="modal-field"><label for="lZip">ZIP</label><input id="lZip"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="lContact">Contact name</label><input id="lContact"></div>
+        <div class="modal-field"><label for="lPhone">Phone</label><input id="lPhone"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('lotModal')">Cancel</button>
+        <button class="modal-btn-primary" id="lotSaveBtn" onclick="saveLot()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="partyModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="partyModalTitle">Add Agency</h2></div><button class="modal-close" onclick="closeModal('partyModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="partyModalError"></div>
+      <div class="modal-success" id="partyModalSuccess"></div>
+      <div id="partyFields">
+        <div class="modal-field"><label for="pName">Name</label><input id="pName"></div>
+        <div class="modal-row">
+          <div class="modal-field"><label for="pContact">Contact name</label><input id="pContact"></div>
+          <div class="modal-field"><label for="pPhone">Phone</label><input id="pPhone"></div>
+        </div>
+        <div class="modal-field"><label for="pEmail">Email</label><input id="pEmail" type="email"></div>
+        <div class="modal-field" id="pMaxField"><label for="pMax">Max Service Vehicle Permits</label><input id="pMax" type="number" min="0" value="2"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-danger" id="partyDeleteBtn" onclick="deleteParty()">Delete</button>
+        <button class="modal-btn-secondary" id="partyCancelBtn" onclick="closeModal('partyModal')">Cancel</button>
+        <button class="modal-btn-primary" id="partySaveBtn" onclick="saveParty()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="vehicleModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2>Register Service Vehicle</h2></div><button class="modal-close" onclick="closeModal('vehicleModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="vehicleModalError"></div>
+      <div class="modal-field"><label for="vBusiness">Business name</label><input id="vBusiness" placeholder="e.g. Ace Cleaning Co"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('vehicleModal')">Cancel</button>
+        <button class="modal-btn-primary" id="vehicleSaveBtn" onclick="saveVehicle()">Register</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailsModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2>Community details</h2></div><button class="modal-close" onclick="closeModal('detailsModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="detailsModalError"></div>
+      <div class="modal-field"><label for="dName">Community name</label><input id="dName"></div>
+      <div class="modal-field"><label for="dStreet">Street</label><input id="dStreet"></div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="dCity">City</label><input id="dCity"></div>
+        <div class="modal-field"><label for="dState">State</label><input id="dState" maxlength="2"></div>
+        <div class="modal-field"><label for="dZip">ZIP</label><input id="dZip"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="dContact">Contact name</label><input id="dContact"></div>
+        <div class="modal-field"><label for="dPhone">Phone</label><input id="dPhone"></div>
+      </div>
+      <div class="modal-field"><label for="dEmail">Contact email</label><input id="dEmail" type="email"></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('detailsModal')">Cancel</button>
+        <button class="modal-btn-primary" id="detailsSaveBtn" onclick="saveDetails()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+let authToken = null;
+try{ authToken = localStorage.getItem('strpark_token'); }catch(e){}
+let currentUser = null, company = null, instance = null, location_ = null, subscription = null;
+let permitTypes = [], citationTypes = [], unitTypes = [];
+let permitFees = {}, permitBasis = {}, citationFines = {}, unitDetails = {};
+let lots = [], agencies = [], enforcementProfiles = [], vehiclePermits = [], payAccount = null, payments = [];
+
+// Variables the shared Import code expects
+let imp_selectedCompany = null, imp_selectedInstance = null, imp_unitTypes = [], currentUnits = [], currentOwnersByUnit = {}, instances = [];
+
+const money = c => '$' + ((c || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const dollars = v => '$' + (Number(v) || 0).toLocaleString();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso.slice(0, 10) + 'T00:00:00');
+  return d.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'});
+}
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// ---------- Invitations (new accounts choose their own password) ----------
+function _escInv(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function inviteHtml(prefix, a, roleText){
+  if(!a) return prefix;
+  if(a.created_new_account === false)
+    return `${prefix} <b>${_escInv(a.email)}</b> already has an STRPark account and signs in with their existing password.`;
+  const inv = a.invitation || {};
+  const exp = inv.expires_at ? new Date(inv.expires_at + 'Z').toLocaleDateString() : '';
+  return `${prefix} We emailed <b>${_escInv(a.name || a.email)}</b> (<code>${_escInv(inv.sent_to || a.email)}</code>) an invitation to choose a password${roleText ? ' and sign in as ' + _escInv(roleText) : ''}.
+    The link works once and expires ${_escInv(exp)}.
+    <div style="margin-top:10px;background:#fff;border:1px dashed #DEDAD5;border-radius:8px;padding:10px 12px;font-size:12px;color:#6E6E6E;">Simulated email &mdash; you can also give them this link yourself:
+      <input readonly value="${_escInv(inv.link || '')}" onclick="this.select()" style="width:100%;font-family:monospace;font-size:11.5px;padding:6px 8px;border:1px solid #DEDAD5;border-radius:6px;margin:6px 0;box-sizing:border-box;">
+      <button type="button" onclick="copyInviteLink(this)" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Copy link</button>
+      <button type="button" onclick="resendInvite(this, '${_escInv(inv.sent_to || a.email)}')" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Resend invitation</button>
+      <span class="invite-status"></span></div>`;
+}
+function copyInviteLink(btn){
+  const input = btn.parentElement.querySelector('input'); input.select();
+  try{ navigator.clipboard.writeText(input.value); }catch(e){ document.execCommand('copy'); }
+  btn.parentElement.querySelector('.invite-status').textContent = 'Copied.';
+}
+async function resendInvite(btn, email){
+  const status = btn.parentElement.querySelector('.invite-status'); btn.disabled = true;
+  try{ const inv = await api('POST', '/auth/resend-invitation', {email}); btn.parentElement.querySelector('input').value = inv.link;
+       status.textContent = 'Sent a new link. The earlier one no longer works.'; }
+  catch(e){ status.textContent = e.message; } finally{ btn.disabled = false; }
+}
+
+async function api(method, path, body){
+  const opts = {method, headers: {}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  opts.headers['X-App-Base'] = new URL('.', location.href).href;
+  if(authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+  if(body !== undefined){ opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const res = await fetch(API_BASE + path, opts);
+  const text = await res.text();
+  let data = null;
+  if(text){ try{ data = JSON.parse(text); }catch(e){ data = null; } }
+  if(!res.ok){
+    const err = new Error((data && data.error) ? data.error : `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+async function apiBatch(paths){
+  if(!paths.length) return [];
+  const r = await api('POST', '/batch', {paths});
+  return r.results.map(x => { if(x.status >= 400) throw new Error((x.body && x.body.error) || `Request failed (${x.status})`); return x.body; });
+}
+
+// ---------- Sign in ----------
+
+async function doLogin(){
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  try{
+    const res = await fetch(API_BASE + '/auth/login', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: document.getElementById('loginEmail').value.trim(), password: document.getElementById('loginPassword').value})});
+    const data = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(data.error || 'Sign in failed');
+    authToken = data.token;
+    try{ localStorage.setItem('strpark_token', authToken); }catch(e){}
+    await bootstrap();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    showScreen('login');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function doLogout(){
+  authToken = null;
+  try{ localStorage.removeItem('strpark_token'); }catch(e){}
+  showScreen('login');
+}
+
+function showScreen(which){
+  document.getElementById('loginScreen').style.display = which === 'login' ? 'block' : 'none';
+  document.getElementById('loadingScreen').style.display = which === 'loading' ? 'block' : 'none';
+  document.getElementById('app').style.display = which === 'app' ? 'block' : 'none';
+}
+
+async function bootstrap(){
+  showScreen('loading');
+  currentUser = await api('GET', '/auth/me');
+  const wrong = msg => { const e = new Error(msg); e.wrongPortal = true; return e; };
+  if(currentUser.role !== 'company_admin' || !currentUser.company_id){
+    throw wrong("You're signed in with an account that isn't a Community Admin. Sign in with your community's admin account, or use the portal for your role.");
+  }
+  company = await api('GET', `/companies/${currentUser.company_id}`);
+  if(company.edition !== 'community'){
+    throw wrong('This account belongs to an Enterprise company. Please use the Admin Portal instead.');
+  }
+  const mine = await api('GET', '/auth/my-instances');
+  instance = mine.find(i => i.company_id === company.id);
+  if(!instance) throw new Error('No property found for this community.');
+  instances = [instance];
+  imp_selectedCompany = company;
+  imp_selectedInstance = instance;
+  location_ = {id: instance.location_id};
+  document.getElementById('communityLabel').textContent = instance.name;
+  document.getElementById('footCommunity').textContent = instance.name + ' · STRPark';
+  document.getElementById('userLabel').textContent = `${currentUser.name} · Community Admin`;
+  document.title = `Community Portal — ${instance.name}`;
+  showScreen('app');
+  await Promise.all([loadSubscription(), loadFees(), loadLots(), loadParties(), loadVehicles(), loadSettings(), loadImportData()]);
+  applyBranding();
+  const params = new URLSearchParams(location.search);
+  if(params.get('welcome') || params.get('payment')) handleReturn(params);
+}
+
+// ---------- Subscription banner ----------
+
+async function loadSubscription(){
+  subscription = await api('GET', `/communities/${company.id}/subscription`);
+  renderSubscription();
+}
+
+function renderSubscription(){
+  const s = subscription;
+  const banner = document.getElementById('subBanner'), text = document.getElementById('subBannerText'), btn = document.getElementById('subBannerBtn');
+  const per = s.billing_cycle === 'annual' ? 'per year' : 'per month';
+  let cls = '', msg = '', btnLabel = '';
+  if(s.status === 'incomplete'){
+    cls = 'bad'; msg = '<b>Add a card to start your free trial.</b> New permits can\'t be issued until a card is saved.'; btnLabel = 'Add card';
+  }else if(s.status === 'trialing'){
+    const days = Math.max(0, Math.round((new Date(s.trial_ends_at + 'T00:00:00') - new Date(localDateISO() + 'T00:00:00')) / 86400000));
+    cls = 'info'; msg = `<b>Free trial: ${days} day${days === 1 ? '' : 's'} left.</b> Your first charge of ${money(s.price_cents)} (${s.tier ? s.tier.name : ''} plan, ${per}) is on ${fmtDate(s.next_billing_date)}.`;
+  }else if(s.status === 'past_due'){
+    cls = 'warn'; msg = `<b>Your last payment didn't go through.</b> Please pay ${money(s.amount_due_cents)} by ${fmtDate(s.restrict_on)}, or new permits will be paused.`; btnLabel = 'Update card & pay';
+  }else if(s.status === 'restricted'){
+    cls = 'bad'; msg = `<b>New permits are paused</b> because your STRPark subscription is past due. Existing permits and patrols keep working. Pay ${money(s.amount_due_cents)} to resume.`; btnLabel = 'Update card & pay';
+  }
+  bannerAction = startCardCheckout;
+  if(!s.email_confirmed && ['trialing', 'active'].includes(s.status)){
+    // Community sign-up: confirm the admin's email within 7 days.
+    bannerAction = resendConfirmation; btnLabel = 'Resend email';
+    if(s.email_confirmation_overdue){
+      cls = 'bad'; msg = `<b>New permits are paused until you confirm your email.</b> We sent a link to ${esc(s.contact_email)}. Existing permits and patrols keep working.`;
+    } else {
+      cls = 'info'; msg = `<b>Please confirm your email.</b> We sent a link to ${esc(s.contact_email)}. Confirm by ${fmtDate(s.confirm_by)} to keep issuing permits.`;
+    }
+  }
+  banner.className = 'sub-banner ' + cls;
+  banner.style.display = msg ? 'flex' : 'none';
+  text.innerHTML = msg;
+  btn.style.display = btnLabel ? '' : 'none';
+  btn.textContent = btnLabel;
+  renderSubscriptionDetails();
+}
+
+function statusPill(status){
+  const map = {incomplete: ['No card yet', 'pill-bad'], trialing: ['Free trial', 'pill-info'], active: ['Active', 'pill-ok'],
+               past_due: ['Past due', 'pill-warn'], restricted: ['Restricted', 'pill-bad']};
+  const [label, cls] = map[status] || [status, 'pill-gray'];
+  return `<span class="pill ${cls}">${label}</span>`;
+}
+
+function renderSubscriptionDetails(){
+  const s = subscription;
+  const tier = s.tier || {};
+  const range = tier.max_units == null ? 'no Unit limit' : `up to ${tier.max_units} Units`;
+  document.getElementById('subDetails').innerHTML = `
+    <div class="k">Status</div><div>${statusPill(s.status)}</div>
+    <div class="k">Plan</div><div>${esc(tier.name || '—')} (${range}) &middot; you have ${s.unit_count} Unit${s.unit_count === 1 ? '' : 's'}</div>
+    <div class="k">Price</div><div>${money(s.monthly_price_cents)} per month, or ${money(s.annual_price_cents)} per year (save ${s.annual_discount_percent}%)</div>
+    <div class="k">Billing</div><div>${s.billing_cycle === 'annual' ? 'Annual' : 'Monthly'}</div>
+    <div class="k">Next charge</div><div>${s.next_billing_date ? `${money(s.price_cents)} on ${fmtDate(s.next_billing_date)}` : '—'}</div>
+    <div class="k">Card</div><div>${s.card_last4 ? `&bull;&bull;&bull;&bull; ${s.card_last4} <span class="pill pill-gray">SIMULATED</span>` : 'None saved'}</div>`;
+  const other = s.billing_cycle === 'annual' ? 'monthly' : 'annual';
+  document.getElementById('subActions').innerHTML = `
+    <button class="modal-btn-primary" onclick="startCardCheckout()">${s.amount_due_cents ? `Pay ${money(s.amount_due_cents)}` : (s.card_last4 ? 'Replace card' : 'Add card')}</button>
+    <button class="modal-btn-secondary" onclick="switchCycle('${other}')">Switch to ${other} billing</button>`;
+  const inv = s.invoices || [];
+  document.getElementById('invoicesBody').innerHTML = inv.length ? inv.map(i => `
+    <tr><td>${fmtDate(i.billing_date)}</td><td>${fmtDate(i.billing_date)} &ndash; ${fmtDate(i.period_end)}</td><td>${esc(i.tier_name)}</td>
+      <td>${i.unit_count}</td><td class="money">${money(i.amount_cents)}</td>
+      <td>${i.status === 'paid' ? '<span class="pill pill-ok">Paid</span>' : '<span class="pill pill-bad">Failed</span>'}</td></tr>`).join('')
+    : `<tr class="empty-row"><td colspan="6">No charges yet.</td></tr>`;
+}
+
+let bannerAction = null;
+function subBannerAction(){ if(bannerAction) bannerAction(); }
+async function resendConfirmation(){
+  try{ const r = await api('POST', `/communities/${company.id}/confirm-email/resend`); alert(`We sent a new confirmation link to ${r.sent_to}.`); }
+  catch(e){ alert(e.message); }
+}
+function escHtml(v){ return esc(v); }
+
+async function startCardCheckout(){
+  try{
+    const back = new URL(location.href); back.search = '';
+    const r = await api('POST', `/communities/${company.id}/subscription/checkout`, {return_url: back.toString()});
+    location.href = new URL(r.checkout_url, location.href).toString();
+  }catch(e){ alert(e.message); }
+}
+
+async function switchCycle(cycle){
+  if(!confirm(`Switch to ${cycle} billing? The change applies from your next billing date.`)) return;
+  try{
+    subscription = await api('PUT', `/communities/${company.id}/subscription`, {billing_cycle: cycle});
+    renderSubscription();
+  }catch(e){ alert(e.message); }
+}
+
+function handleReturn(params){
+  history.replaceState(null, '', location.pathname);
+  if(params.get('payment') === 'declined'){
+    alert("Your card wasn't accepted. Please try again.");
+  }else if(params.get('welcome') && subscription.status === 'trialing'){
+    alert(`Welcome to STRPark! Your free trial has started.\n\nNext steps:\n1. Fees & Rules: set your permit fees and fines\n2. Parking Lots: add your lots\n3. Import: load your Units and Owners\n4. Enforcement: add the company that patrols your lots\n\nWe've also emailed you a link to confirm your email address. Please click it within 7 days.`);
+  }
+}
+
+// ---------- Tabs ----------
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-nav .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('#app > .tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel_' + tab));
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function showError(id, msg){ const el = document.getElementById(id); el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+
+// ---------- Fees & Rules ----------
+
+const KIND = {
+  permit:   {path: 'permit-types',   value: 'fee',     label: 'Permit Type'},
+  citation: {path: 'citation-types', value: 'fine',    label: 'Citation Type'},
+  unit:     {path: 'unit-types',     value: 'details', label: 'Unit Type'},
+};
+const PROTECTED = {permit: ['Owner', 'Guest']};
+
+async function loadFees(){
+  const q = `?instance_id=${instance.id}`;
+  [permitTypes, citationTypes, unitTypes] = await Promise.all([
+    api('GET', `/companies/${company.id}/permit-types${q}`),
+    api('GET', `/companies/${company.id}/citation-types${q}`),
+    api('GET', `/companies/${company.id}/unit-types${q}`),
+  ]);
+  imp_unitTypes = unitTypes;
+  const paths = [
+    ...permitTypes.map(t => `/instances/${instance.id}/permit-types/${t.id}/fee`),
+    ...citationTypes.map(t => `/instances/${instance.id}/citation-types/${t.id}/fine`),
+    ...unitTypes.map(t => `/instances/${instance.id}/unit-types/${t.id}/details`),
+  ];
+  const res = await apiBatch(paths);
+  let i = 0;
+  permitFees = {}; permitBasis = {}; citationFines = {}; unitDetails = {};
+  permitTypes.forEach(t => { const r = res[i++]; permitFees[t.id] = r.fee; permitBasis[t.id] = r.basis || 'once'; });
+  citationTypes.forEach(t => { citationFines[t.id] = res[i++].fine; });
+  unitTypes.forEach(t => { unitDetails[t.id] = res[i++]; });
+  renderFees();
+}
+
+function renderFees(){
+  const btn = (kind, id) => `<td class="actions-cell"><button class="edit-btn" onclick="openTypeEditor('${kind}', ${id})">Edit</button></td>`;
+  document.getElementById('permitBody').innerHTML = permitTypes.map(t => `
+    <tr><td><b>${esc(t.name)}</b></td><td class="money">${dollars(permitFees[t.id])}</td>
+      <td>${t.name === 'Owner' ? '<span class="muted">Always free</span>' : (permitBasis[t.id] === 'daily' ? 'Per night' : 'One-time')}</td>${btn('permit', t.id)}</tr>`).join('')
+    || `<tr class="empty-row"><td colspan="4">No permit types yet.</td></tr>`;
+  document.getElementById('citationBody').innerHTML = citationTypes.map(t => `
+    <tr><td><b>${esc(t.name)}</b></td><td class="money">${dollars(citationFines[t.id])}</td>${btn('citation', t.id)}</tr>`).join('')
+    || `<tr class="empty-row"><td colspan="3">No citation types yet.</td></tr>`;
+  const yn = b => b ? 'Yes' : 'No';
+  document.getElementById('unitBody').innerHTML = unitTypes.map(t => { const d = unitDetails[t.id] || {}; return `
+    <tr><td><b>${esc(t.name)}</b></td><td>${d.max_active}</td><td>${d.max_days}</td><td>${esc(d.checkin_time)}</td><td>${esc(d.checkout_time)}</td>
+      <td>${yn(d.early_arrive)}</td><td>${yn(d.late_depart)}</td>${btn('unit', t.id)}</tr>`; }).join('')
+    || `<tr class="empty-row"><td colspan="8">No Unit types yet.</td></tr>`;
+}
+
+let typeEditing = null;   // {kind, id, original}
+function openTypeEditor(kind, id){
+  const list = {permit: permitTypes, citation: citationTypes, unit: unitTypes}[kind];
+  const t = id ? list.find(x => x.id === id) : null;
+  const locked = t && (PROTECTED[kind] || []).includes(t.name);
+  typeEditing = {kind, id, original: t ? t.name : null};
+  document.getElementById('typeModalTitle').textContent = (t ? 'Edit ' : 'Add ') + KIND[kind].label;
+  document.getElementById('typeModalSub').textContent = locked ? `"${t.name}" is a built-in type, so its name can't change.` : '';
+  showError('typeModalError', '');
+  let html = `<div class="modal-field"><label for="tName">Name</label><input id="tName" value="${esc(t ? t.name : '')}" ${locked ? 'disabled' : ''}></div>`;
+  if(kind === 'permit'){
+    const isOwner = t && t.name === 'Owner';
+    html += `<div class="modal-field"><label for="tFee">Fee ($)</label><input id="tFee" type="number" min="0" step="1" value="${t ? permitFees[t.id] : 0}" ${isOwner ? 'disabled' : ''}></div>`;
+    if(!isOwner){
+      const b = t ? permitBasis[t.id] : 'once';
+      html += `<div class="modal-field"><label>How it's charged</label>
+        <label class="radio-line"><input type="radio" name="tBasis" value="once" ${b !== 'daily' ? 'checked' : ''}><span>One-time &mdash; once per permit</span></label>
+        <label class="radio-line"><input type="radio" name="tBasis" value="daily" ${b === 'daily' ? 'checked' : ''}><span>Per night &mdash; fee &times; nights (a same-day visit counts as 1)</span></label></div>`;
+    } else {
+      html += `<p class="hint">Owner permits are never charged.</p>`;
+    }
+  } else if(kind === 'citation'){
+    html += `<div class="modal-field"><label for="tFine">Fine ($)</label><input id="tFine" type="number" min="0" step="1" value="${t ? citationFines[t.id] : 0}"></div>`;
+  } else {
+    const d = t ? unitDetails[t.id] : {max_active: 2, max_days: 14, checkin_time: '4:00 PM', checkout_time: '11:00 AM', early_arrive: 1, late_depart: 1};
+    html += `
+      <div class="modal-row">
+        <div class="modal-field"><label for="tMaxActive">Max Active</label><input id="tMaxActive" type="number" min="1" value="${d.max_active}"></div>
+        <div class="modal-field"><label for="tMaxDays">Max Days</label><input id="tMaxDays" type="number" min="1" value="${d.max_days}"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="tCheckin">Check-in time</label><input id="tCheckin" value="${esc(d.checkin_time)}"></div>
+        <div class="modal-field"><label for="tCheckout">Check-out time</label><input id="tCheckout" value="${esc(d.checkout_time)}"></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="tEarly">Early arrive</label><select id="tEarly"><option value="yes" ${d.early_arrive ? 'selected' : ''}>Yes</option><option value="no" ${!d.early_arrive ? 'selected' : ''}>No</option></select></div>
+        <div class="modal-field"><label for="tLate">Late depart</label><select id="tLate"><option value="yes" ${d.late_depart ? 'selected' : ''}>Yes</option><option value="no" ${!d.late_depart ? 'selected' : ''}>No</option></select></div>
+      </div>`;
+  }
+  document.getElementById('typeModalBody').innerHTML = html;
+  document.getElementById('typeDeleteBtn').style.display = (t && !locked) ? '' : 'none';
+  openModal('typeModal');
+}
+
+function readTypeValue(kind){
+  const n = id => Math.max(0, parseInt(document.getElementById(id).value, 10) || 0);
+  if(kind === 'permit') return {fee: n('tFee')};
+  if(kind === 'citation') return {fine: n('tFine')};
+  return {max_active: Math.max(1, n('tMaxActive')), max_days: Math.max(1, n('tMaxDays')),
+          checkin_time: document.getElementById('tCheckin').value.trim(), checkout_time: document.getElementById('tCheckout').value.trim(),
+          early_arrive: document.getElementById('tEarly').value === 'yes', late_depart: document.getElementById('tLate').value === 'yes'};
+}
+
+async function saveType(){
+  const {kind, id, original} = typeEditing;
+  const k = KIND[kind];
+  const name = document.getElementById('tName').value.trim();
+  if(!name) return showError('typeModalError', 'Name is required.');
+  const btn = document.getElementById('typeSaveBtn');
+  btn.disabled = true;
+  try{
+    let typeId = id;
+    if(!id){
+      const created = await api('POST', `/companies/${company.id}/${k.path}`, {name});
+      typeId = created.id;
+    } else if(name !== original){
+      await api('PUT', `/${k.path}/${id}`, {name});
+    }
+    if(!(kind === 'permit' && name === 'Owner')) await api('PUT', `/${k.path}/${typeId}/${k.value}`, readTypeValue(kind));
+    const basisEl = document.querySelector('input[name="tBasis"]:checked');
+    if(kind === 'permit' && basisEl && basisEl.value !== (id ? permitBasis[id] : 'once')){
+      await api('PUT', `/instances/${instance.id}/permit-types/${typeId}/fee-basis`, {basis: basisEl.value});
+    }
+    closeModal('typeModal');
+    await loadFees();
+  }catch(e){
+    showError('typeModalError', e.message);
+    await loadFees();
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteType(){
+  const {kind, id, original} = typeEditing;
+  if(!confirm(`Delete "${original}"? This can't be undone.`)) return;
+  try{
+    await api('DELETE', `/${KIND[kind].path}/${id}`);
+    closeModal('typeModal');
+    await loadFees();
+  }catch(e){ showError('typeModalError', e.message); }
+}
+
+// ---------- Parking Lots ----------
+
+let editingLotId = null;
+async function loadLots(){
+  lots = await api('GET', `/instances/${instance.id}/parking-lots`);
+  document.getElementById('lotsBody').innerHTML = lots.map(l => `
+    <tr><td><b>${esc(l.lot_code)}</b></td><td>${esc(l.name)}</td><td>${esc(l.street)}, ${esc(l.city)}, ${esc(l.state)} ${esc(l.zip)}</td>
+      <td>${esc(l.contact_name)}</td><td>${esc(l.phone)}</td>
+      <td class="actions-cell"><button class="edit-btn" onclick="openLotModal(${l.id})">Edit</button><button class="del-btn" onclick="deleteLot(${l.id})">Delete</button></td></tr>`).join('')
+    || `<tr class="empty-row"><td colspan="6">No parking lots yet. Add your first lot.</td></tr>`;
+}
+function openLotModal(id){
+  editingLotId = id;
+  const l = id ? lots.find(x => x.id === id) : {lot_code: '', name: '', street: instance.street, city: instance.city, state: instance.state, zip: instance.zip, contact_name: instance.contact_name, phone: instance.phone};
+  document.getElementById('lotModalTitle').textContent = id ? 'Edit Parking Lot' : 'Add Parking Lot';
+  [['lCode','lot_code'],['lName','name'],['lStreet','street'],['lCity','city'],['lState','state'],['lZip','zip'],['lContact','contact_name'],['lPhone','phone']]
+    .forEach(([el, f]) => document.getElementById(el).value = l[f] || '');
+  showError('lotModalError', '');
+  openModal('lotModal');
+}
+async function saveLot(){
+  const v = id => document.getElementById(id).value.trim();
+  const payload = {lot_code: v('lCode'), name: v('lName'), street: v('lStreet'), city: v('lCity'), state: v('lState'), zip: v('lZip'),
+                   contact_name: v('lContact'), phone: v('lPhone'), local_admin_maintainable: true};
+  const missing = Object.entries(payload).filter(([k, val]) => k !== 'local_admin_maintainable' && !val).map(([k]) => k.replace('_', ' '));
+  if(missing.length) return showError('lotModalError', 'Required: ' + missing.join(', ') + '.');
+  try{
+    if(editingLotId) await api('PUT', `/parking-lots/${editingLotId}`, payload);
+    else{
+      const lot = await api('POST', `/locations/${location_.id}/parking-lots`, payload);
+      await api('PUT', `/instances/${instance.id}/parking-lots/${lot.id}`);
+    }
+    closeModal('lotModal');
+    await loadLots();
+  }catch(e){ showError('lotModalError', e.message); }
+}
+async function deleteLot(id){
+  const l = lots.find(x => x.id === id);
+  if(!confirm(`Delete lot "${l.name}"?`)) return;
+  try{ await api('DELETE', `/parking-lots/${id}`); await loadLots(); }catch(e){ alert(e.message); }
+}
+
+// ---------- Agencies & Enforcement ----------
+
+let partyEditing = null;  // {kind, id}
+async function loadParties(){
+  [agencies, enforcementProfiles] = await Promise.all([
+    api('GET', `/locations/${location_.id}/agencies`),
+    api('GET', `/locations/${location_.id}/enforcement-profiles`),
+  ]);
+  const inst = await api('GET', `/instances/${instance.id}`);
+  instance.enforcement_profile_id = inst.enforcement_profile_id;
+  document.getElementById('agenciesBody').innerHTML = agencies.map(a => `
+    <tr><td><b>${esc(a.name)}</b></td><td>${esc(a.contact_name)}</td><td>${esc(a.phone)}</td><td>${esc(a.email)}</td><td>${a.max_service_vehicle_permits}</td>
+      <td class="actions-cell"><button class="edit-btn" onclick="openPartyModal('agency', ${a.id})">Edit</button></td></tr>`).join('')
+    || `<tr class="empty-row"><td colspan="6">No Agencies yet.</td></tr>`;
+  document.getElementById('enforcementBody').innerHTML = enforcementProfiles.map(p => {
+    const covers = instance.enforcement_profile_id === p.id;
+    return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.contact_name)}</td><td>${esc(p.phone)}</td><td>${esc(p.email)}</td>
+      <td>${covers ? '<span class="pill pill-ok">Yes</span>' : `<button class="edit-btn" onclick="chooseEnforcement(${p.id})">Make this our company</button>`}</td>
+      <td class="actions-cell"><button class="edit-btn" onclick="openPartyModal('enforcement', ${p.id})">Edit</button></td></tr>`; }).join('')
+    || `<tr class="empty-row"><td colspan="6">No Enforcement company yet.</td></tr>`;
+}
+function openPartyModal(kind, id){
+  partyEditing = {kind, id};
+  const list = kind === 'agency' ? agencies : enforcementProfiles;
+  const p = id ? list.find(x => x.id === id) : {name: '', contact_name: '', phone: '', email: '', max_service_vehicle_permits: 2};
+  const label = kind === 'agency' ? 'Agency' : 'Enforcement Company';
+  document.getElementById('partyModalTitle').textContent = (id ? 'Edit ' : 'Add ') + label;
+  document.getElementById('pName').value = p.name; document.getElementById('pContact').value = p.contact_name;
+  document.getElementById('pPhone').value = p.phone; document.getElementById('pEmail').value = p.email;
+  document.getElementById('pMax').value = p.max_service_vehicle_permits ?? 2;
+  document.getElementById('pMaxField').style.display = kind === 'agency' ? '' : 'none';
+  document.getElementById('partyFields').style.display = '';
+  document.getElementById('partySaveBtn').style.display = '';
+  document.getElementById('partyCancelBtn').textContent = 'Cancel';
+  document.getElementById('partyDeleteBtn').style.display = (id && kind === 'agency') ? '' : 'none';
+  showError('partyModalError', '');
+  document.getElementById('partyModalSuccess').style.display = 'none';
+  openModal('partyModal');
+}
+async function saveParty(){
+  const {kind, id} = partyEditing;
+  const v = el => document.getElementById(el).value.trim();
+  const payload = {name: v('pName'), contact_name: v('pContact'), phone: v('pPhone'), email: v('pEmail')};
+  const missing = Object.entries(payload).filter(([k, val]) => !val).map(([k]) => k.replace('_', ' '));
+  if(missing.length) return showError('partyModalError', 'Required: ' + missing.join(', ') + '.');
+  if(kind === 'agency') payload.max_service_vehicle_permits = parseInt(v('pMax'), 10) || 0;
+  const base = kind === 'agency' ? 'agencies' : 'enforcement-profiles';
+  try{
+    if(id){
+      await api('PUT', `/${base}/${id}`, payload);
+      closeModal('partyModal');
+    } else {
+      const r = await api('POST', `/locations/${location_.id}/${base}`, payload);
+      if(kind === 'enforcement' && !instance.enforcement_profile_id){
+        await api('PUT', `/instances/${instance.id}/enforcement-profile`, {enforcement_profile_id: r.id});
+      }
+      const role = kind === 'agency' ? 'Agency Admin' : 'Enforcement Admin';
+      const ok = document.getElementById('partyModalSuccess');
+      ok.innerHTML = r.admin && r.admin.invitation
+        ? inviteHtml(`${esc(payload.name)} added.`, r.admin, `its ${role}`)
+        : `${esc(payload.name)} added. ${esc(payload.email)} already has an STRPark account and signs in with their existing password.`;
+      ok.style.display = 'block';
+      document.getElementById('partyFields').style.display = 'none';
+      document.getElementById('partySaveBtn').style.display = 'none';
+      document.getElementById('partyCancelBtn').textContent = 'Close';
+    }
+    await loadParties();
+  }catch(e){ showError('partyModalError', e.message); }
+}
+async function deleteParty(){
+  const {id} = partyEditing;
+  if(!confirm('Delete this Agency? Owners who chose it will need to pick another.')) return;
+  try{ await api('DELETE', `/agencies/${id}`); closeModal('partyModal'); await loadParties(); }catch(e){ showError('partyModalError', e.message); }
+}
+async function chooseEnforcement(id){
+  try{ await api('PUT', `/instances/${instance.id}/enforcement-profile`, {enforcement_profile_id: id}); await loadParties(); }catch(e){ alert(e.message); }
+}
+
+// ---------- Service Vehicles ----------
+
+async function loadVehicles(){
+  vehiclePermits = await api('GET', `/instances/${instance.id}/vehicle-permits`);
+  document.getElementById('vehiclesBody').innerHTML = vehiclePermits.map(v => `
+    <tr><td><b>${esc(v.business_name)}</b></td><td>${fmtDate(v.start_date)} &ndash; ${fmtDate(v.end_date)}</td>
+      <td>${v.cancelled ? '<span class="pill pill-gray">Cancelled</span>' : '<span class="pill pill-ok">Active</span>'}</td>
+      <td class="actions-cell">${v.cancelled ? '' : `<button class="edit-btn" onclick="printVehicle(${v.id})">Print</button><button class="del-btn" onclick="cancelVehicle(${v.id})">Cancel</button>`}</td></tr>`).join('')
+    || `<tr class="empty-row"><td colspan="4">No Service Vehicle permits yet.</td></tr>`;
+}
+function openVehicleModal(){ document.getElementById('vBusiness').value = ''; showError('vehicleModalError', ''); openModal('vehicleModal'); }
+async function saveVehicle(){
+  const name = document.getElementById('vBusiness').value.trim();
+  if(!name) return showError('vehicleModalError', 'Business name is required.');
+  try{ await api('POST', `/instances/${instance.id}/vehicle-permits`, {business_name: name}); closeModal('vehicleModal'); await loadVehicles(); }
+  catch(e){ showError('vehicleModalError', e.message); }
+}
+async function cancelVehicle(id){
+  if(!confirm('Cancel this Service Vehicle permit?')) return;
+  try{ await api('DELETE', `/instances/${instance.id}/vehicle-permits/${id}`); await loadVehicles(); }catch(e){ alert(e.message); }
+}
+async function printVehicle(id){
+  const win = window.open('', '_blank');
+  try{
+    const res = await fetch(`${API_BASE}/instances/${instance.id}/vehicle-permits/${id}/pdf`, {headers: {'Authorization': 'Bearer ' + authToken, 'X-Client-Date': localDateISO()}});
+    if(!res.ok){ const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Could not load the permit'); }
+    const url = URL.createObjectURL(await res.blob());
+    if(win) win.location.href = url; else window.open(url, '_blank');
+    await loadVehicles();
+  }catch(e){ if(win) win.close(); alert(e.message); }
+}
+
+// ---------- Settings: details, payments, branding ----------
+
+async function loadSettings(){
+  const [inst, acct, pays, comp] = await Promise.all([
+    api('GET', `/instances/${instance.id}`),
+    api('GET', `/instances/${instance.id}/payment-account`),
+    api('GET', `/instances/${instance.id}/payments`),
+    api('GET', `/companies/${company.id}`),
+  ]);
+  Object.assign(instance, inst); payAccount = acct; payments = pays; company = comp;
+  renderSettings();
+  await loadCommunityAdmins();
+}
+function renderSettings(){
+  const i = instance;
+  document.getElementById('detailsView').innerHTML = `
+    <div class="k">Name</div><div>${esc(i.name)}</div>
+    <div class="k">Address</div><div>${esc(i.street)}, ${esc(i.city)}, ${esc(i.state)} ${esc(i.zip)}</div>
+    <div class="k">Contact</div><div>${esc(i.contact_name)} &middot; ${esc(i.phone)} &middot; ${esc(i.email)}</div>`;
+  document.getElementById('payAccount').innerHTML = payAccount.connected
+    ? `<span class="pill pill-ok">Connected</span> &nbsp;Account <code>${esc(payAccount.account_id)}</code> since ${fmtDate(payAccount.connected_at)}`
+    : `<span class="pill pill-gray">Not connected</span> &nbsp;Permits are issued free.`;
+  document.getElementById('payAccountActions').innerHTML = payAccount.connected
+    ? `<button class="modal-btn-secondary" onclick="setPayAccount(false)">Disconnect</button>`
+    : `<button class="modal-btn-primary" onclick="setPayAccount(true)">Connect payment account (simulated)</button>`;
+  document.getElementById('paymentsBody').innerHTML = payments.length ? payments.map(p => `
+    <tr><td>${fmtDate(p.paid_at || p.created_at)}</td><td>${esc(p.description)}</td><td>${esc(p.payer_email || '—')}</td>
+      <td class="money">${money(p.total_cents)}</td><td>${p.status === 'refunded' ? '<span class="pill pill-warn">Refunded</span>' : p.status === 'paid' ? '<span class="pill pill-ok">Paid</span>' : '<span class="pill pill-gray">' + esc(p.status) + '</span>'}</td></tr>`).join('')
+    : `<tr class="empty-row"><td colspan="5">No payments yet.</td></tr>`;
+  const img = (el, url) => document.getElementById(el).innerHTML = url ? `<img src="${url}" alt="">` : 'None';
+  img('logoPreview', i.logo_data_url); img('permitImgPreview', i.permit_background_data_url); img('footerLogoPreview', company.footer_logo_data_url);
+  document.getElementById('footerTextInput').value = company.footer_text || '';
+}
+// ---------- Community Admins ----------
+async function loadCommunityAdmins(){
+  let admins = [];
+  try{ admins = await api('GET', `/communities/${company.id}/admins`); }catch(e){ return; }
+  document.getElementById('adminsBody').innerHTML = admins.map(a => `<tr>
+      <td>${esc(a.name)}${a.is_you ? ' <span class="pill pill-gray">You</span>' : ''}</td><td>${esc(a.email)}</td>
+      <td>${a.invitation_pending ? '<span class="pill pill-warn">Invitation sent</span>' : '<span class="pill pill-ok">Active</span>'}</td>
+      <td class="row-actions">${a.invitation_pending ? `<button class="edit-btn" onclick="resendAdminInvite('${esc(a.email)}')">Resend</button>` : ''}
+        ${a.is_you || admins.length < 2 ? '' : `<button class="del-btn" onclick="removeCommunityAdmin(${a.user_id}, '${esc(a.name)}')">Remove</button>`}</td></tr>`).join('');
+}
+async function addCommunityAdmin(){
+  const name = document.getElementById('newAdminName').value.trim();
+  const email = document.getElementById('newAdminEmail').value.trim();
+  const err = document.getElementById('adminsError'); err.style.display = 'none';
+  if(!name || !email){ err.textContent = 'Enter a name and an email.'; err.style.display = 'block'; return; }
+  const btn = document.getElementById('addAdminBtn'); btn.disabled = true;
+  try{
+    const r = await api('POST', `/communities/${company.id}/admins`, {name, email});
+    document.getElementById('adminsInvite').innerHTML = inviteHtml('Invitation sent.', {...r, created_new_account: true}, 'a Community Admin');
+    document.getElementById('newAdminName').value = ''; document.getElementById('newAdminEmail').value = '';
+    await loadCommunityAdmins();
+  }catch(e){ err.textContent = e.message; err.style.display = 'block'; }
+  finally{ btn.disabled = false; }
+}
+async function resendAdminInvite(email){
+  try{
+    const inv = await api('POST', '/auth/resend-invitation', {email});
+    document.getElementById('adminsInvite').innerHTML = inviteHtml('Sent a new invitation.', {email, name: email, invitation: inv, created_new_account: true}, 'a Community Admin');
+  }catch(e){ alert(e.message); }
+}
+async function removeCommunityAdmin(userId, name){
+  if(!confirm(`Remove ${name} as a Community Admin? They will no longer be able to sign in.`)) return;
+  try{ await api('DELETE', `/communities/${company.id}/admins/${userId}`); await loadCommunityAdmins(); }catch(e){ alert(e.message); }
+}
+
+async function setPayAccount(connect){
+  if(!connect && !confirm('Disconnect? New permits will be issued free until you connect again.')) return;
+  try{ payAccount = await api(connect ? 'POST' : 'DELETE', `/instances/${instance.id}/payment-account`); renderSettings(); }catch(e){ alert(e.message); }
+}
+function openDetailsModal(){
+  const i = instance;
+  [['dName','name'],['dStreet','street'],['dCity','city'],['dState','state'],['dZip','zip'],['dContact','contact_name'],['dPhone','phone'],['dEmail','email']]
+    .forEach(([el, f]) => document.getElementById(el).value = i[f] || '');
+  showError('detailsModalError', '');
+  openModal('detailsModal');
+}
+async function saveDetails(){
+  const v = id => document.getElementById(id).value.trim();
+  const payload = {name: v('dName'), street: v('dStreet'), city: v('dCity'), state: v('dState'), zip: v('dZip'), contact_name: v('dContact'), phone: v('dPhone'), email: v('dEmail')};
+  const missing = Object.entries(payload).filter(([k, val]) => !val).map(([k]) => k.replace('_', ' '));
+  if(missing.length) return showError('detailsModalError', 'Required: ' + missing.join(', ') + '.');
+  try{
+    await api('PUT', `/instances/${instance.id}`, payload);
+    closeModal('detailsModal');
+    await loadSettings();
+    document.getElementById('communityLabel').textContent = instance.name;
+  }catch(e){ showError('detailsModalError', e.message); }
+}
+function uploadImage(which, input){
+  const file = input.files[0];
+  if(!file) return;
+  if(!/^image\/(jpeg|png)$/.test(file.type)){ alert('Please choose a JPG or PNG image.'); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try{
+      const url = ev.target.result;
+      if(which === 'logo') await api('PUT', `/instances/${instance.id}/logo`, {logo_data_url: url});
+      else if(which === 'permit') await api('PUT', `/instances/${instance.id}/permit-background`, {permit_background_data_url: url});
+      else await api('PUT', `/companies/${company.id}/branding`, {footer_logo_data_url: url});
+      await loadSettings(); applyBranding();
+    }catch(e){ alert(e.message); }
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+async function removeImage(which){
+  try{
+    if(which === 'logo') await api('DELETE', `/instances/${instance.id}/logo`);
+    else if(which === 'permit') await api('DELETE', `/instances/${instance.id}/permit-background`);
+    else await api('PUT', `/companies/${company.id}/branding`, {footer_logo_data_url: null});
+    await loadSettings(); applyBranding();
+  }catch(e){ alert(e.message); }
+}
+async function saveFooterText(){
+  try{ await api('PUT', `/companies/${company.id}/branding`, {footer_text: document.getElementById('footerTextInput').value}); await loadSettings(); applyBranding(); alert('Footer text saved.'); }
+  catch(e){ alert(e.message); }
+}
+function applyBranding(){
+  const logo = instance.logo_data_url;
+  document.querySelectorAll('.brand-header-logo').forEach(img => { img.style.display = logo ? 'block' : 'none'; if(logo) img.src = logo; });
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = company.footer_logo_data_url ? 'block' : 'none';
+  if(company.footer_logo_data_url) fl.src = company.footer_logo_data_url;
+  document.getElementById('brandFooterText').textContent = company.footer_text || '';
+  document.getElementById('brandFooter').style.display = (company.footer_logo_data_url || company.footer_text) ? 'flex' : 'none';
+}
+
+// ---------- Import (shared code from the Admin Portal) ----------
+
+async function loadImportData(){
+  currentUnits = await api('GET', `/instances/${instance.id}/units`);
+  currentOwnersByUnit = {};
+}
+// ---------- CSV parsing ----------
+
+function parseCSV(text){
+  // Proper quote-aware parser -- a naive split(',') breaks on any quoted field
+  // that contains a comma (e.g. "Unit 4135, Ski Trails at Northstar"), which is
+  // an extremely common case for addresses. This parses character-by-character,
+  // respecting quotes, escaped "" quotes, and CRLF line endings.
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  let i = 0;
+  while(i < text.length){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += c; i++; continue;
+    }
+    if(c === '"'){ inQuotes = true; i++; continue; }
+    if(c === ','){ row.push(field); field = ''; i++; continue; }
+    if(c === '\r'){ i++; continue; }
+    if(c === '\n'){
+      row.push(field); field = '';
+      if(row.some(f => f.trim() !== '')) rows.push(row);
+      row = []; i++; continue;
+    }
+    field += c; i++;
+  }
+  if(field !== '' || row.length){ row.push(field); if(row.some(f => f.trim() !== '')) rows.push(row); }
+
+  if(!rows.length) return {headers: [], rows: []};
+  const headers = rows[0].map(h=>h.trim());
+  const dataRows = rows.slice(1).map(cells => {
+    const r = {};
+    headers.forEach((h,idx) => r[h] = (cells[idx] || '').trim());
+    return r;
+  });
+  return {headers, rows: dataRows};
+}
+function findCol(row, ...candidates){
+  const keys = Object.keys(row);
+  for(const c of candidates){
+    const match = keys.find(k => k.toLowerCase() === c.toLowerCase());
+    if(match) return row[match];
+  }
+  return '';
+}
+function downloadTemplate(kind){
+  const csv = kind === 'units'
+    ? 'Unit ID,Unit Address,Unit Type\n4135,"Unit 4135, Ski Trails at Northstar",2 Br\n'
+    : 'First name,Last name,Email,Phone,Unit\nJohn,Levine,john.levine@example.com,530.555.0101,4135\n';
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = kind === 'units' ? 'units_template.csv' : 'owners_template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- Units import ----------
+
+let pendingUnitsRows = null;
+
+document.getElementById('unitsFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const {rows} = parseCSV(ev.target.result);
+    validateAndPreviewUnits(rows);
+  };
+  reader.readAsText(file);
+});
+
+function validateAndPreviewUnits(rows){
+  const validUnitTypeNames = imp_unitTypes.map(t=>t.name);
+  const seenIds = new Set();
+
+  const validated = rows.map(row=>{
+    const unitId = findCol(row, 'Unit ID');
+    const address = findCol(row, 'Unit Address');
+    const type = findCol(row, 'Unit Type');
+    const errors = [];
+    if(!unitId) errors.push('Missing Unit ID');
+    else if(seenIds.has(unitId)) errors.push(`Duplicate Unit ID "${unitId}" within this file`);
+    seenIds.add(unitId);
+    if(!address) errors.push('Missing Unit Address');
+    if(!type) errors.push('Missing Unit Type');
+    else if(!validUnitTypeNames.includes(type)) errors.push(`Unknown Unit Type "${type}" (must be one of: ${validUnitTypeNames.join(', ')})`);
+    return {unitId, address, type, errors};
+  });
+
+  renderPreview('units', validated, ['Unit ID','Unit Address','Unit Type'], r => [r.unitId, r.address, r.type]);
+
+  const hasErrors = validated.some(r=>r.errors.length>0);
+  pendingUnitsRows = hasErrors ? null : validated;
+
+  if(!hasErrors){
+    renderUnitsDiff(validated);
+  } else {
+    document.getElementById('unitsDiffArea').innerHTML = '';
+  }
+}
+
+function renderUnitsDiff(newRows){
+  const currentById = {};
+  currentUnits.forEach(u => currentById[u.unit_code] = u);
+  const newIds = new Set(newRows.map(r=>r.unitId));
+
+  const added = [], updated = [], unchanged = [];
+  newRows.forEach(r=>{
+    const existing = currentById[r.unitId];
+    if(!existing){
+      added.push(r);
+    } else {
+      const typeObj = imp_unitTypes.find(t=>t.name===r.type);
+      const changed = existing.address !== r.address || existing.unit_type_id !== (typeObj ? typeObj.id : null);
+      (changed ? updated : unchanged).push({...r, unitRowId: existing.id});
+    }
+  });
+  const removed = currentUnits.filter(u => !newIds.has(u.unit_code));
+
+  const area = document.getElementById('unitsDiffArea');
+  area.innerHTML = `
+    <div class="diff-section"><h3>Will Add <span class="count-pill count-added">${added.length}</span></h3>
+      ${added.length ? tableFor(added, ['Unit ID','Address','Type'], r=>[r.unitId, r.address, r.type]) : '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'}</div>
+    <div class="diff-section"><h3>Will Update <span class="count-pill count-updated">${updated.length}</span></h3>
+      ${updated.length ? tableFor(updated, ['Unit ID','Address','Type'], r=>[r.unitId, r.address, r.type]) : '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'}</div>
+    <div class="diff-section"><h3>Unchanged <span class="count-pill count-unchanged">${unchanged.length}</span></h3></div>
+    <div class="diff-section" id="unitsRemovedSection"><h3>On File, Not In This Upload <span class="count-pill count-removed">${removed.length}</span></h3>
+      <div id="unitsRemovedBody"></div></div>
+    <button class="modal-btn-primary" onclick="confirmUnitsImport()">Confirm Import</button>
+  `;
+  renderRemovableUnits(removed);
+  window._unitsDiff = {added, updated, unchanged, removed};
+}
+
+function tableFor(rows, headers, mapper){
+  return `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map(r=>`<tr>${mapper(r).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}
+  </tbody></table>`;
+}
+
+async function renderRemovableUnits(removed){
+  const body = document.getElementById('unitsRemovedBody');
+  if(!removed.length){ body.innerHTML = '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'; return; }
+  body.innerHTML = removed.map(u => `
+    <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;">
+      <input type="checkbox" id="removeUnit_${u.id}" data-unit-id="${u.id}">
+      Unit ${u.unit_code}
+    </label>`).join('');
+}
+
+async function confirmUnitsImport(){
+  const diff = window._unitsDiff;
+  const btn = event.target;
+  btn.disabled = true;
+  let added = 0, updated = 0, removed = 0, blocked = 0;
+  try{
+    for(const r of diff.added){
+      const typeObj = imp_unitTypes.find(t=>t.name===r.type);
+      await api('POST', `/instances/${imp_selectedInstance.id}/units`, {unit_code: r.unitId, address: r.address, unit_type_id: typeObj.id});
+      added++;
+    }
+    for(const r of diff.updated){
+      const typeObj = imp_unitTypes.find(t=>t.name===r.type);
+      await api('PUT', `/units/${r.unitRowId}`, {address: r.address, unit_type_id: typeObj.id});
+      updated++;
+    }
+    for(const u of diff.removed){
+      const checked = document.getElementById(`removeUnit_${u.id}`)?.checked;
+      if(!checked) continue;
+      try{
+        await api('DELETE', `/units/${u.id}`);
+        removed++;
+      }catch(e){
+        if(e.status === 409){
+          // Has Contacts/Permits -- require explicit force confirmation
+          const impact = e.data;
+          const proceed = confirm(`Unit ${u.unit_code}: ${impact.error}\n\nRemove anyway?`);
+          if(proceed){
+            await api('DELETE', `/units/${u.id}`, {confirmed: true});
+            removed++;
+          } else {
+            blocked++;
+          }
+        } else {
+          throw e;
+        }
+      }
+    }
+    currentUnits = await api('GET', `/instances/${imp_selectedInstance.id}/units`);
+    const banner = document.getElementById('unitsSuccessBanner');
+    banner.textContent = `Added ${added}, updated ${updated}, removed ${removed}` + (blocked ? `, ${blocked} skipped (not confirmed).` : '.');
+    banner.style.display = 'block';
+    pendingUnitsRows = null;
+    document.getElementById('unitsFileInput').value = '';
+    document.getElementById('unitsDiffArea').innerHTML = '';
+    document.getElementById('unitsPreviewArea').innerHTML = '';
+  }catch(e){
+    alert('Import failed: ' + e.message);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// ---------- Owners import ----------
+
+let pendingOwnersRows = null;
+
+document.getElementById('ownersFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const {rows} = parseCSV(ev.target.result);
+    validateAndPreviewOwners(rows);
+  };
+  reader.readAsText(file);
+});
+
+async function validateAndPreviewOwners(rows){
+  const knownUnitIds = currentUnits.map(u=>u.unit_code);
+
+  const validated = rows.map(row=>{
+    const first = findCol(row, 'First name');
+    const last = findCol(row, 'Last name');
+    const email = findCol(row, 'Email');
+    const phone = findCol(row, 'Phone');
+    const unit = findCol(row, 'Unit');
+    const errors = [];
+    if(!first) errors.push('Missing First name');
+    if(!last) errors.push('Missing Last name');
+    if(!email) errors.push('Missing Email');
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Invalid Email format');
+    if(!phone) errors.push('Missing Phone');
+    if(!unit) errors.push('Missing Unit');
+    else if(!knownUnitIds.includes(unit)) errors.push(`Unit "${unit}" not found in this Instance's Units`);
+    return {first, last, email, phone, unit, errors};
+  });
+
+  renderPreview('owners', validated, ['First name','Last name','Email','Phone','Unit'],
+    r => [r.first, r.last, r.email, r.phone, r.unit]);
+
+  const hasErrors = validated.some(r=>r.errors.length>0);
+  pendingOwnersRows = hasErrors ? null : validated;
+
+  if(!hasErrors){
+    await renderOwnersDiff(validated);
+  } else {
+    document.getElementById('ownersDiffArea').innerHTML = '';
+  }
+}
+
+async function renderOwnersDiff(newRows){
+  // Fetch current owners for every Unit referenced (by this file OR already on record)
+  const unitIdsInvolved = new Set([...newRows.map(r=>currentUnits.find(u=>u.unit_code===r.unit)?.id), ...currentUnits.map(u=>u.id)].filter(Boolean));
+  const allCurrentOwners = [];
+  for(const uid of unitIdsInvolved){
+    if(!currentOwnersByUnit[uid]) currentOwnersByUnit[uid] = await api('GET', `/units/${uid}/owners`);
+    currentOwnersByUnit[uid].forEach(o => allCurrentOwners.push({...o, unit_code: currentUnits.find(u=>u.id===uid).unit_code}));
+  }
+
+  const currentByEmail = {};
+  allCurrentOwners.forEach(o => currentByEmail[o.email] = o);
+  const newEmails = new Set(newRows.map(r=>r.email));
+
+  const added = [], updated = [], unchanged = [];
+  newRows.forEach(r=>{
+    const existing = currentByEmail[r.email];
+    if(!existing){
+      added.push(r);
+    } else if(existing.first_name !== r.first || existing.last_name !== r.last || existing.phone !== r.phone || existing.unit_code !== r.unit){
+      updated.push({...r, ownerRowId: existing.id});
+    } else {
+      unchanged.push(r);
+    }
+  });
+  const removed = allCurrentOwners.filter(o => !newEmails.has(o.email));
+
+  const area = document.getElementById('ownersDiffArea');
+  area.innerHTML = `
+    <div class="diff-section"><h3>Will Add <span class="count-pill count-added">${added.length}</span></h3>
+      ${added.length ? tableFor(added, ['Name','Email','Unit'], r=>[`${r.first} ${r.last}`, r.email, r.unit]) : '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'}</div>
+    <div class="diff-section"><h3>Will Update <span class="count-pill count-updated">${updated.length}</span></h3>
+      ${updated.length ? tableFor(updated, ['Name','Email','Unit'], r=>[`${r.first} ${r.last}`, r.email, r.unit]) : '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'}</div>
+    <div class="diff-section"><h3>Unchanged <span class="count-pill count-unchanged">${unchanged.length}</span></h3></div>
+    <div class="diff-section"><h3>On File, Not In This Upload <span class="count-pill count-removed">${removed.length}</span></h3>
+      <div id="ownersRemovedBody">${removed.length ? removed.map(o => `
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;">
+          <input type="checkbox" id="removeOwner_${o.id}" ${o.user_id===currentUser.id?'disabled':''}>
+          ${o.first_name} ${o.last_name} (${o.email}) &mdash; Unit ${o.unit_code}
+          ${o.user_id===currentUser.id ? '<span class="protected-tag">YOU</span>' : ''}
+        </label>`).join('') : '<p style="color:var(--gray-mid);font-size:12.5px;">None</p>'}</div></div>
+    <button class="modal-btn-primary" onclick="confirmOwnersImport()">Confirm Import</button>
+  `;
+  window._ownersDiff = {added, updated, unchanged, removed};
+}
+
+async function confirmOwnersImport(){
+  const diff = window._ownersDiff;
+  const btn = event.target;
+  btn.disabled = true;
+  let added = 0, updated = 0, removed = 0, blocked = 0;
+  const newAccounts = [];
+  try{
+    for(const r of diff.added){
+      const unit = currentUnits.find(u=>u.unit_code===r.unit);
+      const result = await api('POST', `/units/${unit.id}/owners`, {
+        first_name: r.first, last_name: r.last, email: r.email, phone: r.phone,
+        perm_manage_profiles: 'Full Access', perm_create_permits: 'Full Access', perm_manage_trust_agency: 'Full Access'
+      });
+      // create_owner links to a real login -- a brand-new email creates a
+      // fresh account with a temp password (nobody else has shown this
+      // anywhere, so it needs surfacing here), while reusing an existing
+      // admin/owner's email merges into their account instead (no new
+      // password, but still worth confirming since the importer might not
+      // have expected the merge).
+      if(result.admin){
+        newAccounts.push(result.admin);
+      }
+      added++;
+    }
+    for(const r of diff.updated){
+      await api('PUT', `/owners/${r.ownerRowId}`, {first_name: r.first, last_name: r.last, email: r.email, phone: r.phone});
+      updated++;
+    }
+    for(const o of diff.removed){
+      const checked = document.getElementById(`removeOwner_${o.id}`)?.checked;
+      if(!checked) continue;
+      try{
+        await api('DELETE', `/owners/${o.id}`);
+        removed++;
+      }catch(e){
+        blocked++;
+      }
+    }
+    currentOwnersByUnit = {};
+    const banner = document.getElementById('ownersSuccessBanner');
+    const brandNew = newAccounts.filter(a => a.created_new_account);
+    const merged = newAccounts.filter(a => !a.created_new_account);
+    let bannerHtml = `Added ${added}, updated ${updated}, removed ${removed}` + (blocked ? `, ${blocked} skipped (couldn't be removed -- see error).` : '.');
+    if(brandNew.length){
+      bannerHtml += `<div style="margin-top:8px;"><b>New logins created.</b> Each Owner was emailed an invitation to choose a password (the link works once and expires in 7 days):<ul style="margin:4px 0 0;padding-left:18px;">` +
+        brandNew.map(a => `<li>${escHtml(a.email)}${a.invitation ? ` &mdash; <a href="${escHtml(a.invitation.link)}" target="_blank" rel="noopener">invitation link</a>` : ''}</li>`).join('') + `</ul></div>`;
+    }
+    if(merged.length){
+      bannerHtml += `<div style="margin-top:8px;font-size:12.5px;"><b>Merged into existing accounts</b> (already had a login, added as a contact here too): ${merged.map(a=>a.email).join(', ')}</div>`;
+    }
+    banner.innerHTML = bannerHtml;
+    banner.style.display = 'block';
+    pendingOwnersRows = null;
+    document.getElementById('ownersFileInput').value = '';
+    document.getElementById('ownersDiffArea').innerHTML = '';
+    document.getElementById('ownersPreviewArea').innerHTML = '';
+  }catch(e){
+    alert('Import failed: ' + e.message);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// ---------- Shared preview rendering ----------
+
+function renderPreview(kind, rows, headers, mapper){
+  const area = document.getElementById(kind + 'PreviewArea');
+  const errorRows = rows.filter(r=>r.errors.length>0);
+  if(errorRows.length){
+    area.innerHTML = `<div class="error-box"><b>${errorRows.length} row(s) have errors -- fix the file and re-upload:</b><ul>
+      ${errorRows.map((r,i) => `<li>Row ${rows.indexOf(r)+2}: ${r.errors.join('; ')}</li>`).join('')}
+    </ul></div>`;
+  } else {
+    area.innerHTML = `<p style="font-size:12.5px;color:var(--ok);font-weight:600;">&#10003; ${rows.length} row(s) parsed with no errors.</p>`;
+  }
+}
+
+/* shared: trySessionFromStorage -- defined once by the portal shell */
+/* removed: trySessionFromStorage() -- handled by the portal shell */
+
+
+function imp_switchTab(tab){
+  document.querySelectorAll('#panel_import .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#panel_import .tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('imp_panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('imp_tabBtn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+
+// After an import changes the number of Units, the plan tier may change too.
+const _origConfirmUnits = typeof confirmUnitsImport === 'function' ? confirmUnitsImport : null;
+if(_origConfirmUnits){
+  confirmUnitsImport = async function(){ await _origConfirmUnits(); try{ await loadSubscription(); }catch(e){} };
+}
+
+// ---------- Phones: label each table cell with its column heading ----------
+function labelTableCells(table){
+  const heads = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    [...tr.children].forEach((td, i) => {
+      if(td.hasAttribute('colspan')){ td.setAttribute('data-label', ''); return; }
+      const label = heads[i] || '';
+      if(/^actions?$/i.test(label)) td.classList.add('actions-cell');
+      else td.setAttribute('data-label', label);
+    });
+  });
+}
+function watchTables(){
+  document.querySelectorAll('#app table').forEach(table => {
+    if(table.dataset.watched) return;
+    table.dataset.watched = '1';
+    const body = table.querySelector('tbody');
+    if(!body) return;
+    new MutationObserver(() => labelTableCells(table)).observe(body, {childList: true});
+    labelTableCells(table);
+  });
+}
+watchTables();
+
+(async function start(){
+  if(!authToken){ showScreen('login'); return; }
+  try{ await bootstrap(); }
+  catch(e){
+    authToken = null;
+    // Keep another portal's sign-in intact if this just isn't a Community account.
+    if(!e.wrongPortal){ try{ localStorage.removeItem('strpark_token'); }catch(err){} }
+    showScreen('login');
+    const el = document.getElementById('loginError'); el.textContent = e.message; el.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>

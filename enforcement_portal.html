@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enforcement Portal — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --status-active:#B8791A; --status-active-bg:#FBF0DD;
+    --status-disputed:#2A6F97; --status-disputed-bg:#E3EFF5;
+    --status-dismissed:#8A4FB0; --status-dismissed-bg:#F0E6F7;
+    --status-paid:#2F7A4F; --status-paid-bg:#E4F3E8;
+    --status-void:#B23B3B; --status-void-bg:#FAE6E6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1320px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:22px;flex-wrap:wrap;gap:16px;}
+  .report-title h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .report-title p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .masthead-right{text-align:right;font-size:12.5px;color:var(--gray-mid);}
+  .masthead-right .generated{font-weight:600;color:var(--gray-ink);}
+  .logout-btn{font-size:11.5px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;margin-top:8px;}
+  .logout-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+  .card{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:16px 18px;}
+  .card .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-mid);font-weight:600;}
+  .card .value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;margin-top:6px;color:var(--gray-ink);}
+  .card .sub{font-size:11.5px;color:var(--gray-mid);margin-top:2px;}
+  .filters{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:14px 18px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .field input,.field select{font-family:inherit;font-size:13.5px;padding:7px 10px;border:1px solid var(--gray-line);border-radius:6px;background:#fff;color:var(--gray-ink);min-width:130px;}
+  .field input:focus,.field select:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .reset-link{font-size:12.5px;color:var(--coral-dark);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;padding:7px 0;}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;overflow:hidden;}
+  thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-mid);font-weight:700;background:#FAFAF9;padding:11px 12px;border-bottom:1px solid var(--gray-line);white-space:nowrap;}
+  th.sortable{cursor:pointer;user-select:none;}
+  th.sortable:hover{color:var(--coral-dark);}
+  #sortArrow{font-size:9px;display:inline-block;margin-left:2px;}
+  tbody td{padding:11px 12px;font-size:13px;border-bottom:1px solid #EFEDEA;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FBF8F7;}
+  .plate{font-family:'IBM Plex Mono',monospace;font-weight:700;background:#F1EFEC;border:1px solid var(--gray-line);border-radius:4px;padding:2px 7px;font-size:12.5px;letter-spacing:.03em;}
+  .unit-cell{font-weight:700;}
+  .unit-cell.unmatched{color:var(--gray-mid);font-style:italic;font-weight:400;}
+  .type-pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--coral-tint);color:var(--coral-dark);white-space:nowrap;}
+  .status-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .status-active{background:var(--status-active-bg);color:var(--status-active);}
+  .status-disputed{background:var(--status-disputed-bg);color:var(--status-disputed);}
+  .status-dismissed{background:var(--status-dismissed-bg);color:var(--status-dismissed);}
+  .status-paid{background:var(--status-paid-bg);color:var(--status-paid);}
+  .status-void{background:var(--status-void-bg);color:var(--status-void);}
+  .repeat-flag{font-size:10.5px;color:var(--status-void);font-weight:700;margin-left:5px;}
+  .fine-cell{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .edit-btn{font-size:11.5px;font-weight:600;color:var(--coral-dark);background:none;border:1px solid var(--coral-dark);border-radius:5px;padding:3px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .edit-btn:hover{background:var(--coral-tint);}
+  .edit-btn.review{color:var(--status-disputed);border-color:var(--status-disputed);}
+  .edit-btn.review:hover{background:var(--status-disputed-bg);}
+  .no-results{text-align:center;padding:40px 20px;color:var(--gray-mid);font-size:13.5px;}
+  .footnote{margin-top:16px;font-size:11.5px;color:var(--gray-mid);display:flex;justify-content:space-between;border-top:1px solid var(--gray-line);padding-top:10px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:6vh;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:#fff;border-radius:12px;width:520px;max-width:92vw;max-height:86vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--gray-line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h2{margin:0;font-size:16px;font-weight:800;}
+  .modal-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .modal-close{background:none;border:none;font-size:18px;color:var(--gray-mid);cursor:pointer;line-height:1;}
+  .modal-body{padding:20px 22px;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field textarea{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;resize:vertical;min-height:64px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;flex-wrap:wrap;}
+  .modal-btn-secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary{background:var(--coral);border:none;color:#fff;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary:hover{background:var(--coral-dark);}
+  .modal-btn-void{background:var(--status-void);border:none;color:#fff;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-void:hover{background:#8f2c2c;}
+  .modal-btn-primary:disabled,.modal-btn-void:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .current-summary{background:#FAFAF9;border:1px solid var(--gray-line);border-radius:6px;padding:10px 12px;font-size:12.5px;color:var(--gray-mid);margin-bottom:16px;}
+  .current-summary b{color:var(--gray-ink);}
+  .dispute-box{background:#FAFAF9;border:1px solid var(--gray-line);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;}
+  .dispute-box .label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-error{background:var(--status-void-bg);color:var(--status-void);border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+
+  .login-wrap{max-width:380px;margin:12vh auto 0;padding:36px 32px;background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+  .login-wrap h1{font-size:19px;font-weight:800;margin:0 0 4px;}
+  .login-wrap p{font-size:12.5px;color:var(--gray-mid);margin:0 0 22px;}
+  .modal-field input{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;width:100%;}
+  .login-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:11px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;}
+  .login-btn:hover{background:var(--coral-dark);}
+  .login-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .loading-note{text-align:center;padding:60px 20px;color:var(--gray-mid);font-size:13px;}
+  #app{display:none;}
+  .tab-nav{display:flex;gap:22px;border-bottom:1px solid var(--gray-line);margin-bottom:20px;margin-top:16px;}
+  .tab-btn{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--gray-mid);padding:10px 2px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;}
+  .tab-btn.active{color:var(--coral-dark);border-bottom-color:var(--coral);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .add-btn{font-size:12.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-family:inherit;}
+  .add-btn:hover{background:var(--coral-dark);}
+  .subsection-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+  .subsection-head h2{font-size:15px;font-weight:800;margin:0;}
+  .role-pill{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;background:var(--coral-tint);color:var(--coral-dark);}
+  .modal-success-inline{background:var(--status-paid-bg, #E4F3E8);color:var(--status-paid, #2F7A4F);border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .bg-panel{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:22px;display:flex;gap:32px;flex-wrap:wrap;}
+  .bg-current-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;margin-bottom:8px;}
+  .bg-preview{width:220px;height:140px;border:1px solid var(--gray-line);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#FAFAF9;overflow:hidden;}
+  .bg-preview img{max-width:100%;max-height:100%;object-fit:contain;}
+  .bg-preview .placeholder{font-size:11.5px;color:var(--gray-mid);text-align:center;padding:0 12px;}
+  .bg-controls{flex:1;min-width:240px;}
+  .bg-hint{font-size:11.5px;color:var(--gray-mid);margin-top:8px;}
+
+  /* ---- added by the Enforcement Portal merge ---- */
+  :root{--auth-green:#2F7A4F; --auth-green-bg:#E4F3E8; --auth-red:#B23B3B; --auth-red-bg:#FAE6E6;}
+  .scope-patrol .masthead{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--coral);padding-bottom:14px;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .scope-patrol .report-title h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-0.01em;}
+  .scope-patrol .report-title p{margin:2px 0 0;font-size:12px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .scope-patrol .masthead-right{text-align:right;font-size:12px;color:var(--gray-mid);}
+  .scope-patrol .logout-btn{font-size:11px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit;margin-top:4px;}
+  .officer-badge{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:10px 16px;margin-bottom:18px;font-size:13px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .officer-badge b{font-weight:700;}
+  .lot-select{font-family:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--gray-line);border-radius:6px;background:#fff;}
+  .scan-box{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:22px;margin-bottom:18px;}
+  .scan-box label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-mid);font-weight:600;margin-bottom:8px;text-align:center;}
+  .scan-row{display:flex;gap:10px;justify-content:center;align-items:center;}
+  .scan-row input{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;padding:12px 16px;border:1px solid var(--gray-line);border-radius:8px;width:220px;text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+  .scan-row input:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .scan-row button{background:var(--coral);color:#fff;border:none;padding:12px 24px;font-family:inherit;font-weight:700;font-size:14px;border-radius:8px;cursor:pointer;}
+  .scan-row button:hover{background:var(--coral-dark);}
+  .scan-row button:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .scan-hint{margin-top:12px;font-size:12px;color:var(--gray-mid);text-align:center;}
+  .auth-result{border-radius:12px;padding:20px 22px;margin-bottom:18px;display:none;}
+  .auth-result.authorized{background:var(--auth-green-bg);border:2px solid var(--auth-green);}
+  .auth-result.unauthorized{background:var(--auth-red-bg);border:2px solid var(--auth-red);}
+  .auth-headline{font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .auth-result.authorized .auth-headline{color:var(--auth-green);}
+  .auth-result.unauthorized .auth-headline{color:var(--auth-red);}
+  .auth-detail{font-size:13px;color:var(--gray-ink);margin-top:8px;line-height:1.5;}
+  .auth-detail b{font-weight:700;}
+  .citation-form{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:20px 22px;margin-bottom:18px;display:none;}
+  .citation-form h3{margin:0 0 14px;font-size:15px;font-weight:700;}
+  .modal-field select,.modal-field input{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;}
+  .fine-preview{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--coral-dark);font-size:15px;margin-top:4px;}
+  .scope-patrol .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .modal-btn-primary:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .confirm-box{background:var(--auth-green-bg);border:1px solid var(--auth-green);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--gray-ink);display:none;}
+  .log-section h2{font-size:14px;font-weight:800;margin:0 0 10px;}
+  .scope-patrol thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-mid);font-weight:700;background:#FAFAF9;padding:9px 10px;border-bottom:1px solid var(--gray-line);}
+  .scope-patrol tbody td{padding:9px 10px;font-size:12.5px;border-bottom:1px solid #EFEDEA;}
+  .scope-patrol .plate{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .scope-patrol .status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .empty-log{text-align:center;padding:24px;color:var(--gray-mid);font-size:12.5px;}
+  .scope-patrol .footnote{margin-top:16px;font-size:11.5px;color:var(--gray-mid);text-align:center;}
+  .partial-toggle{text-align:center;margin-bottom:18px;}
+  .partial-toggle a{font-size:12.5px;color:var(--gray-mid);text-decoration:underline;cursor:pointer;}
+  .partial-search-box{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:22px;margin-bottom:18px;display:none;}
+  .partial-search-box .scan-row{margin-bottom:0;}
+  .partial-results{margin-top:16px;}
+  .partial-results table{font-size:13px;}
+  .partial-results th{background:var(--bg);padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--gray-mid);}
+  .partial-results td{padding:8px 10px;border-top:1px solid var(--gray-line);}
+  .status-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+  .status-badge.status-Active{color:var(--auth-green);background:var(--auth-green-bg);}
+  .status-badge.status-Expired,.status-badge.status-Cancelled{color:var(--auth-red);background:var(--auth-red-bg);}
+  .status-badge.status-Future,.status-badge.status-Pending{color:var(--status-active);background:var(--status-active-bg);}
+  .partial-no-results{text-align:center;color:var(--gray-mid);font-size:13px;padding:16px;}
+  .portal-section{display:none;}
+
+  /* ---- Phones: Patrol is used one-handed, outdoors ---- */
+  @media (max-width: 640px){
+    .wrap{padding:12px 12px 40px;}
+    .login-wrap{margin:6vh 0 0;padding:28px 20px;}
+    input, select, textarea{font-size:16px !important;}   /* 16px stops iPhone zooming in on tap */
+    .login-btn{padding:14px 16px;font-size:16px;}
+    .scope-patrol .masthead{align-items:flex-start;}
+    .scope-patrol .report-title h1{font-size:18px;}
+    .scope-patrol .masthead-right{text-align:left;}
+    .scope-patrol .logout-btn{padding:8px 14px;font-size:13px;}
+    .officer-badge{flex-direction:column;align-items:stretch;font-size:14px;padding:12px 14px;}
+    .officer-badge > div:last-child{display:flex;align-items:center;gap:10px;}
+    .lot-select{flex:1;padding:10px 12px;}
+    .scan-box, .partial-search-box{padding:16px 14px;}
+    .scan-row{flex-direction:column;align-items:stretch;}
+    .scan-row input{width:100%;font-size:26px !important;padding:14px 12px;}
+    .scan-row button{width:100%;padding:16px;font-size:17px;}
+    .partial-toggle a{display:inline-block;padding:10px 4px;font-size:14px;}
+    .partial-results{overflow-x:auto;}
+    .auth-result{padding:18px 16px;}
+    .auth-headline{font-size:22px;}
+    .auth-detail{font-size:14.5px;}
+    .citation-form{padding:16px 14px;}
+    .citation-form .modal-field select{width:100%;padding:12px 10px;}
+    .fine-preview{font-size:18px;margin-top:8px;}
+    .scope-patrol .modal-actions{flex-direction:column-reverse;gap:10px;}
+    .scope-patrol .modal-actions button{width:100%;padding:15px;font-size:16px;}
+    .confirm-box{font-size:14.5px;}
+    /* Today's citations: one card per citation instead of a wide table */
+    #logTable thead{display:none;}
+    #logTable, #logTable tbody{display:block;}
+    #logTable tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+    #logTable td{border:none !important;padding:0 !important;font-size:14px !important;}
+    #logTable td:nth-child(1)::before{content:'#';}
+    #logTable td:nth-child(2){display:none;}
+    #logTable td:nth-child(3){grid-column:1;grid-row:1;font-size:17px !important;}
+    #logTable td:nth-child(1){grid-column:2;grid-row:1;text-align:right;color:var(--gray-mid);}
+    #logTable td:nth-child(4){grid-column:1;}
+    #logTable td:nth-child(5){grid-column:2;text-align:right;font-weight:700;}
+    #logTable td:nth-child(6){grid-column:1 / -1;}
+    /* Enforcement Admin tables scroll sideways instead of squeezing */
+    .scope-admin table{display:block;overflow-x:auto;white-space:nowrap;}
+  }
+  .scope-patrol .patrol-col{max-width:720px;margin:0 auto;}
+  .console-nav{display:flex;gap:2px;background:var(--gray-ink,#2B2B2B);border-radius:8px 8px 0 0;padding:6px 10px 0;margin-bottom:22px;}
+  .console-nav a{color:rgba(255,255,255,.65);text-decoration:none;font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:6px 6px 0 0;cursor:pointer;}
+  .console-nav a:hover{color:#fff;background:rgba(255,255,255,.08);}
+  .console-nav a.active{color:var(--gray-ink,#2B2B2B);background:var(--bg,#F4F5F7);}
+
+  /* Branding: Instance logo (top-left) and Company footer */
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginScreen">
+  <div class="login-wrap">
+    <h1>STRPark Enforcement Portal</h1>
+    <p>Patrol officers: check plates and issue citations. Enforcement Admins: also manage your team and citations.</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="modal-field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+    <div class="modal-field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <a href="set_password.html?forgot=1&amp;back=enforcement_portal.html" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:#9C4A45;">Forgot password?</a>
+  </div>
+</div>
+
+<div class="wrap" id="loadingScreen" style="display:none;">
+  <div class="loading-note" id="loadingNote">Loading&hellip;</div>
+</div>
+
+<div class="wrap" id="app" style="display:none;">
+
+  <div class="console-nav" id="portalNav">
+    <a href="#patrol" id="navPatrol" onclick="showSection('patrol');return false;">Patrol</a>
+    <a href="#admin" id="navAdmin" onclick="showSection('admin');return false;">Admin</a>
+  </div>
+
+  <section class="portal-section scope-patrol" id="sec_patrol">
+    <div class="loading-note" id="note_patrol" style="display:none;"></div>
+    <div id="body_patrol">
+<div class="patrol-col">
+
+
+  <div class="masthead">
+    <div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div class="report-title">
+      <h1>Patrol &mdash; Create Citation</h1>
+      <p id="pat_instanceLabel">&nbsp;</p>
+    </div></div>
+    <div class="masthead-right">
+      <div class="generated" id="asOfLabel">&mdash;</div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="officer-badge">
+    <div>Officer: <b id="officerLabel">&nbsp;</b></div>
+    <div>
+      Lot:
+      <select class="lot-select" id="lotSelect"></select>
+    </div>
+  </div>
+
+  <div class="scan-box">
+    <label for="plateInput">Enter or scan license plate</label>
+    <div class="scan-row">
+      <input type="text" id="plateInput" placeholder="e.g. ABC512" maxlength="10">
+      <button id="checkBtn" onclick="checkPlate()">Check</button>
+    </div>
+    <div class="scan-hint">Checks the plate against active parking permits for this property.</div>
+  </div>
+
+  <div class="partial-toggle">
+    <a onclick="togglePartialSearch()">Can't read the full plate? Search by partial plate &rarr;</a>
+  </div>
+
+  <div class="partial-search-box" id="partialSearchBox">
+    <label for="partialInput">Enter any part of the plate</label>
+    <div class="scan-row">
+      <input type="text" id="partialInput" placeholder="e.g. 512" maxlength="10">
+      <button id="partialSearchBtn" onclick="searchPartialPlate()">Search</button>
+    </div>
+    <div class="scan-hint">Shows every permit on this property whose plate contains what you enter -- across all statuses, so you can see the full picture.</div>
+    <div class="partial-results" id="partialResults"></div>
+  </div>
+
+  <div class="auth-result" id="authResult"></div>
+
+  <div class="citation-form" id="citationForm">
+    <h3>Create Citation</h3>
+    <div class="modal-error" id="citationError"></div>
+    <div class="modal-field">
+      <label for="violationType">Violation type</label>
+      <select id="violationType" onchange="updateFinePreview()"></select>
+      <div class="fine-preview" id="finePreview"></div>
+    </div>
+    <div class="modal-field">
+      <label for="citationPhotoInput">Supporting photos (optional, up to 3)</label>
+      <input type="file" id="citationPhotoInput" accept="image/*" capture="environment" multiple onchange="handlePhotoSelection(event)">
+      <div id="photoPreviewRow" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="cancelCitation()">Cancel</button>
+      <button class="modal-btn-primary" id="issueBtn" onclick="submitCitation()">Issue Citation</button>
+    </div>
+  </div>
+
+  <div class="confirm-box" id="confirmBox"></div>
+
+  <div class="log-section">
+    <h2>Citations You've Issued Today</h2>
+    <table id="logTable">
+      <thead>
+        <tr><th>Citation #</th><th>Time</th><th>Plate</th><th>Violation</th><th>Fine</th><th>Status</th></tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+    <div class="empty-log" id="emptyLog" style="display:none;">No citations issued yet today.</div>
+  </div>
+
+  <div class="footnote">STRPark &middot; Enforcement Patrol</div>
+
+
+</div>
+    </div>
+  </section>
+  <section class="portal-section scope-admin" id="sec_admin">
+    <div class="loading-note" id="note_admin" style="display:none;"></div>
+    <div id="body_admin">
+
+
+  <div class="masthead">
+    <div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div class="report-title">
+      <h1>Enforcement Admin Console</h1>
+      <p id="instanceLabel">&nbsp;</p>
+    </div></div>
+    <div class="masthead-right">
+      <div class="generated" id="userLabel">&nbsp;</div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabBtnTeam" onclick="switchTab('team')">Manage Team</button>
+    <button class="tab-btn" id="tabBtnReport" onclick="switchTab('report')">Citation Report</button>
+    <button class="tab-btn" id="tabBtnBackground" onclick="switchTab('background')">Permit Background</button>
+    <button class="tab-btn" id="tabBtnPayments" onclick="switchTab('payments')" style="display:none;">Payments</button>
+  </div>
+
+  <!-- ---------- Manage Team ---------- -->
+  <div class="tab-panel active" id="panelTeam">
+    <div class="subsection-head">
+      <h2>Manage Team</h2>
+      <button class="add-btn" onclick="openMemberModal()">+ Create Member</button>
+    </div>
+    <table>
+      <thead><tr><th>First Name</th><th>Last Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+      <tbody id="teamBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ---------- Citation Report ---------- -->
+  <div class="tab-panel" id="panelReport">
+  <div class="cards">
+    <div class="card"><div class="label">Total Citations</div><div class="value" id="statTotal">—</div><div class="sub">in report period</div></div>
+    <div class="card"><div class="label">Fines Outstanding/Paid</div><div class="value" id="statFines">—</div><div class="sub">total, this period</div></div>
+    <div class="card"><div class="label">Disputed</div><div class="value" id="statDisputed">—</div><div class="sub">awaiting review</div></div>
+    <div class="card"><div class="label">Paid</div><div class="value" id="statPaid">—</div><div class="sub">collected this period</div></div>
+    <div class="card"><div class="label">Repeat Offenders</div><div class="value" id="statRepeat">—</div><div class="sub">plates with 2+ citations</div></div>
+  </div>
+
+  <div class="filters">
+    <div class="field"><label for="fPlate">Plate search</label><input type="text" id="fPlate" placeholder="e.g. ABC"></div>
+    <div class="field">
+      <label for="fStatus">Status</label>
+      <select id="fStatus">
+        <option value="">All statuses</option>
+        <option value="Active">Active</option>
+        <option value="Disputed">Disputed</option>
+        <option value="Dismissed">Dismissed</option>
+        <option value="Paid">Paid</option>
+        <option value="Void">Void</option>
+      </select>
+    </div>
+    <div class="field"><label for="fType">Violation type</label><select id="fType"><option value="">All types</option></select></div>
+    <div class="field"><label for="fLot">Lot</label><select id="fLot"><option value="">All lots</option></select></div>
+    <div class="field"><label for="fOfficer">Officer</label><select id="fOfficer"><option value="">All officers</option></select></div>
+    <div class="field"><label for="fFrom">Report period from</label><input type="date" id="fFrom"></div>
+    <div class="field"><label for="fTo">Report period to</label><input type="date" id="fTo"></div>
+    <button class="reset-link" onclick="resetFilters()">Clear filters (show full history)</button>
+  </div>
+
+  <table id="citationTable">
+    <thead>
+      <tr>
+        <th class="sortable" id="dateHeader" onclick="toggleSort()">Date <span id="sortArrow">&#9660;</span></th>
+        <th>Plate</th><th>Unit</th><th>Violation</th><th>Fine</th><th>Status</th><th>Officer</th><th>Lot</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-results" id="noResults" style="display:none;">No citations match the current filters.</div>
+  </div>
+
+  <!-- ---------- Permit Background ---------- -->
+  <div class="tab-panel" id="panelPayments">
+    <div class="subsection-head"><h2>Online Payments</h2></div>
+    <p style="font-size:12.5px;color:var(--gray-mid);margin:0 0 12px;line-height:1.5;">Drivers pay fines online from the citation page, plus a card processing fee, so you receive the full fine. Until a payment account is connected, the Pay button is hidden and drivers are told to contact you. You can still mark a citation Paid by hand for cash or check.</p>
+    <div id="encPayStatus" style="font-size:13.5px;margin:6px 0 12px;"></div>
+    <div class="modal-actions" style="justify-content:flex-start;" id="encPayActions"></div>
+    <p style="font-size:12px;color:var(--gray-mid);margin:10px 0 22px;">SIMULATED mode: connecting creates a test account and no real money moves.</p>
+    <div class="subsection-head"><h2>Payment History</h2></div>
+    <table>
+      <thead><tr><th>Date</th><th>For</th><th>Payer</th><th>Fine</th><th>Card Fee</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody id="encPaymentsBody"></tbody>
+    </table>
+    <p style="font-size:12px;color:var(--gray-mid);margin-top:10px;">A paid fine that's overturned on appeal (dispute accepted) is refunded in full automatically.</p>
+  </div>
+
+  <div class="tab-panel" id="panelBackground">
+    <div class="subsection-head">
+      <h2>Permit Background</h2>
+    </div>
+    <div class="bg-panel">
+      <div>
+        <div class="bg-current-label">Current background</div>
+        <div class="bg-preview" id="bgPreview"><div class="placeholder">No background uploaded</div></div>
+      </div>
+      <div id="newBgBlock" style="display:none;">
+        <div class="bg-current-label">New background (not yet saved)</div>
+        <div class="bg-preview" id="newBgPreview"></div>
+      </div>
+      <div class="bg-controls">
+        <label for="bgUpload" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;margin-bottom:8px;">Replace background</label>
+        <input type="file" id="bgUpload" accept="image/jpeg,image/png">
+        <div class="bg-hint">Stamped behind the plate number and dates on every PDF permit Guests receive, as a backdrop that's hard to reproduce -- helps you and your patrol officers recognize a genuine permit at a glance. File must be JPG or PNG. Saving replaces the existing background.</div>
+        <div class="modal-actions" style="margin-top:16px;justify-content:flex-start;">
+          <button class="modal-btn-primary" id="saveBgBtn" onclick="saveBg()" disabled>Save Background</button>
+          <button class="modal-btn-secondary" id="cancelBgBtn" onclick="cancelBgUpload()" style="display:none;">Cancel</button>
+          <button class="modal-btn-secondary" id="removeBgBtn" onclick="removeBg()" style="display:none;color:#B23B3B;border-color:#B23B3B;">Remove Background</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <span id="footInstance">&nbsp;</span>
+    <span>Enforcement Admin Console</span>
+  </div>
+
+
+    </div>
+  </section>
+
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<div class="scope-admin">
+
+
+<div class="modal-overlay" id="memberModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="memberModalTitle">Create New Member</h2><div class="sub" id="memberModalSub"></div></div><button class="modal-close" onclick="closeModal('memberModalOverlay')">&times;</button></div>
+    <div class="modal-body" style="padding:20px 22px;">
+      <div class="modal-error" id="memberModalError"></div>
+      <div class="modal-success-inline" id="memberModalSuccess"></div>
+      <div id="memberModalFields">
+        <div class="modal-field">
+          <label for="memberRole">Role</label>
+          <select id="memberRole">
+            <option value="patrol">Patrol</option>
+            <option value="enforcement_admin">Enforcement-Admin</option>
+          </select>
+        </div>
+        <div class="modal-field"><label for="memberFirst">First Name</label><input type="text" id="memberFirst"></div>
+        <div class="modal-field"><label for="memberLast">Last Name</label><input type="text" id="memberLast"></div>
+        <div class="modal-field"><label for="memberEmail">Email</label><input type="email" id="memberEmail"></div>
+        <div class="modal-field"><label for="memberPhone">Phone Number</label><input type="text" id="memberPhone"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" id="memberDeleteBtn" onclick="deleteMember()" style="display:none;margin-right:auto;color:#B23B3B;border-color:#B23B3B;">Remove</button>
+        <button class="modal-btn-secondary" onclick="closeModal('memberModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="memberSaveBtn" onclick="saveMember()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="disputeModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h2>Review Dispute</h2><div class="sub" id="disputeModalSub"></div></div>
+      <button class="modal-close" onclick="closeDisputeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-error" id="disputeModalError"></div>
+      <div class="current-summary" id="disputeCitationSummary"></div>
+      <div class="dispute-box" id="disputeReasonBox"></div>
+      <div id="disputePhotosRow" style="display:none;margin-top:12px;"></div>
+      <div class="modal-field"><label for="disputeComment">Admin comment (added to citation history)</label><textarea id="disputeComment" placeholder="Notes on this decision&hellip;"></textarea></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeDisputeModal()">Close</button>
+        <button class="modal-btn-primary" id="declineBtn" onclick="resolveDispute('deny')">Decline dispute (fine stands)</button>
+        <button class="modal-btn-void" id="approveBtn" onclick="resolveDispute('approve')">Accept dispute (dismiss citation)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="photoModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h2>Citation Photos</h2><div class="sub" id="photoModalSub"></div></div>
+      <button class="modal-close" onclick="closePhotoModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="photoModalGrid" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resolutionModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h2>Dispute Resolution</h2><div class="sub" id="resolutionModalSub"></div></div>
+      <button class="modal-close" onclick="closeResolutionModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="current-summary" id="resolutionCitationSummary"></div>
+      <div class="dispute-box" id="resolutionReasonBox"></div>
+      <div class="modal-field"><label>Admin comment</label><div class="current-summary" id="resolutionAdminComment" style="margin-bottom:0;"></div></div>
+      <div class="modal-actions"><button class="modal-btn-secondary" onclick="closeResolutionModal()">Close</button></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+<div class="scope-patrol">
+
+
+
+</div>
+
+<script>
+// =====================================================================
+// STRPark Enforcement Portal -- one page for Patrol officers and the
+// Enforcement Admin. The shell owns login/session and which sections a
+// role sees; each section's own code follows further down.
+// =====================================================================
+const API_BASE = 'https://api-staging.strpark.com';
+let authToken = localStorage.getItem('strpark_token') || null;
+let currentUser = null;
+const ADMIN_ROLES = ['global_admin', 'company_admin', 'location_admin', 'instance_admin', 'enforcement_admin'];
+const PORTAL_SECTIONS = {
+  patrol: {roles: [...ADMIN_ROLES, 'patrol'], init: () => patrolInit()},
+  admin:  {roles: ADMIN_ROLES, init: () => adminInit()},
+};
+let activeSection = null;
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// ---------- Invitations (new accounts choose their own password) ----------
+function _escInv(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function inviteHtml(prefix, a, roleText){
+  if(!a) return prefix;
+  if(a.created_new_account === false)
+    return `${prefix} <b>${_escInv(a.email)}</b> already has an STRPark account and signs in with their existing password.`;
+  const inv = a.invitation || {};
+  const exp = inv.expires_at ? new Date(inv.expires_at + 'Z').toLocaleDateString() : '';
+  return `${prefix} We emailed <b>${_escInv(a.name || a.email)}</b> (<code>${_escInv(inv.sent_to || a.email)}</code>) an invitation to choose a password${roleText ? ' and sign in as ' + _escInv(roleText) : ''}.
+    The link works once and expires ${_escInv(exp)}.
+    <div style="margin-top:10px;background:#fff;border:1px dashed #DEDAD5;border-radius:8px;padding:10px 12px;font-size:12px;color:#6E6E6E;">Simulated email &mdash; you can also give them this link yourself:
+      <input readonly value="${_escInv(inv.link || '')}" onclick="this.select()" style="width:100%;font-family:monospace;font-size:11.5px;padding:6px 8px;border:1px solid #DEDAD5;border-radius:6px;margin:6px 0;box-sizing:border-box;">
+      <button type="button" onclick="copyInviteLink(this)" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Copy link</button>
+      <button type="button" onclick="resendInvite(this, '${_escInv(inv.sent_to || a.email)}')" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Resend invitation</button>
+      <span class="invite-status"></span></div>`;
+}
+function copyInviteLink(btn){
+  const input = btn.parentElement.querySelector('input'); input.select();
+  try{ navigator.clipboard.writeText(input.value); }catch(e){ document.execCommand('copy'); }
+  btn.parentElement.querySelector('.invite-status').textContent = 'Copied.';
+}
+async function resendInvite(btn, email){
+  const status = btn.parentElement.querySelector('.invite-status'); btn.disabled = true;
+  try{ const inv = await api('POST', '/auth/resend-invitation', {email}); btn.parentElement.querySelector('input').value = inv.link;
+       status.textContent = 'Sent a new link. The earlier one no longer works.'; }
+  catch(e){ status.textContent = e.message; } finally{ btn.disabled = false; }
+}
+
+async function api(method, path, body){
+  const opts = { method, headers: {} };
+  opts.headers['X-Client-Date'] = localDateISO();
+  opts.headers['X-App-Base'] = new URL('.', location.href).href;
+  if(authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+  if(body !== undefined){
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  const res = await fetch(API_BASE + path, opts);
+  let data = null;
+  const text = await res.text();
+  if(text){ try{ data = JSON.parse(text); }catch(e){ data = null; } }
+  if(!res.ok){
+    const err = new Error((data && data.error) ? data.error : `Request failed (${res.status})`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if(!email || !password){
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try{
+    const result = await api('POST', '/auth/login', {email, password});
+    authToken = result.token;
+    localStorage.setItem('strpark_token', authToken);
+    await bootstrap();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+function doLogout(){
+  setBranding(null);
+  authToken = null; currentUser = null; activeSection = null;
+  localStorage.removeItem('strpark_token');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loginPassword').value = '';
+  history.replaceState(null, '', location.pathname);
+}
+
+function sectionNote(key){
+  document.getElementById('body_' + key).style.display = 'none';
+  const n = document.getElementById('note_' + key);
+  n.style.display = 'block';
+  return n;
+}
+
+function sectionAllowed(key){
+  return !!(currentUser && PORTAL_SECTIONS[key] && PORTAL_SECTIONS[key].roles.includes(currentUser.role));
+}
+
+async function showSection(key){
+  if(!sectionAllowed(key)) key = currentUser.role === 'patrol' ? 'patrol' : 'admin';
+  Object.keys(PORTAL_SECTIONS).forEach(k => {
+    document.getElementById('sec_' + k).style.display = k === key ? 'block' : 'none';
+    document.getElementById('nav' + k.charAt(0).toUpperCase() + k.slice(1)).classList.toggle('active', k === key);
+  });
+  activeSection = key;
+  if(location.hash !== '#' + key) history.replaceState(null, '', '#' + key);
+  document.getElementById('note_' + key).style.display = 'none';
+  document.getElementById('body_' + key).style.display = 'block';
+  try{
+    await PORTAL_SECTIONS[key].init();   // each visit reloads that section's data
+  }catch(e){
+    sectionNote(key).textContent = e.message;
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  if(!currentUser) return;
+  const key = location.hash.replace(/^#/, '');
+  if(PORTAL_SECTIONS[key] && key !== activeSection) showSection(key);
+});
+
+async function bootstrap(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+  currentUser = await api('GET', '/auth/me');
+  if(!PORTAL_SECTIONS.patrol.roles.includes(currentUser.role)){
+    document.getElementById('loadingNote').innerHTML =
+      "This account's role (" + currentUser.role.replace('_',' ') + ") doesn't use the Enforcement Portal. " +
+      "<a href=\"#\" onclick=\"doLogout();return false;\">Sign out</a>";
+    return;
+  }
+  // Patrol officers only see the Patrol tools; admins see both.
+  Object.keys(PORTAL_SECTIONS).forEach(k => {
+    document.getElementById('nav' + k.charAt(0).toUpperCase() + k.slice(1)).style.display = sectionAllowed(k) ? '' : 'none';
+  });
+  document.getElementById('portalNav').style.display = currentUser.role === 'patrol' ? 'none' : 'flex';
+  switchTab('team');   // each sign-in starts the Admin section on its first tab
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const want = location.hash.replace(/^#/, '');
+  await showSection(PORTAL_SECTIONS[want] ? want : (currentUser.role === 'patrol' ? 'patrol' : 'admin'));
+}
+
+async function trySessionFromStorage(){
+  if(!authToken){
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+    return;
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+  try{
+    await bootstrap();
+  }catch(e){
+    authToken = null;
+    localStorage.removeItem('strpark_token');
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+  }
+}
+
+// ===================== Admin section (was enforcement_admin_wired.html) =====================
+
+/* shared: API_BASE -- defined once by the portal shell */
+
+/* shared: authToken -- defined once by the portal shell */
+/* shared: currentUser -- defined once by the portal shell */
+let selectedInstance = null;
+let pendingBgDataUrl = null;
+let currentBgDataUrl = null;
+let citations = [];
+let citationTypes = [];
+let parkingLots = [];
+
+/* shared: api -- defined once by the portal shell */
+
+// ---------- Login ----------
+
+/* shared: doLogin -- defined once by the portal shell */
+
+/* shared: doLogout -- defined once by the portal shell */
+
+// ---------- Bootstrap ----------
+
+async function adminInit(){
+  const allowedRoles = ['global_admin', 'company_admin', 'location_admin', 'instance_admin', 'enforcement_admin'];
+  if(!allowedRoles.includes(currentUser.role)){
+    sectionNote('admin').textContent =
+      "This account's role (" + currentUser.role.replace('_',' ') + ") doesn't have access to this report. Sign in as an Enforcement Admin (or Company/Global/Location/Instance Admin).";
+    return;
+  }
+  const myInstances = await api('GET', '/auth/my-instances');
+  if(!myInstances.length){
+    sectionNote('admin').textContent =
+      'This account has no Instance to report on. Sign in as an Enforcement Admin (or Company/Global/Local Admin).';
+    return;
+  }
+  selectedInstance = myInstances[0];
+  applyBranding(selectedInstance.id);
+
+  const [cites, types, lots] = await Promise.all([
+    api('GET', `/instances/${selectedInstance.id}/citations`),
+    api('GET', `/companies/${selectedInstance.company_id}/citation-types?instance_id=${selectedInstance.id}`),
+    api('GET', `/instances/${selectedInstance.id}/parking-lots`),
+  ]);
+  citations = cites;
+  citationTypes = types;
+  parkingLots = lots;
+
+  document.getElementById('instanceLabel').textContent = selectedInstance.name;
+  document.getElementById('userLabel').textContent = currentUser.name;
+  document.getElementById('footInstance').textContent = selectedInstance.name + ' \u00b7 STRPark';
+  await refreshTeam();
+  // Non-critical -- the Citation Report and Team tabs have already rendered
+  // successfully above; a failure here should never leave the whole page
+  // stuck on the loading screen.
+  try{
+    if(selectedInstance.enforcement_profile_id){
+      const profile = await api('GET', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}`);
+      currentBgDataUrl = profile.permit_background_data_url;
+    }
+    renderBg();
+  }catch(e){
+    console.error('Could not load permit background:', e.message);
+  }
+  // Payments tab: the Enforcement Admin connects their own company's account.
+  const isEncAdmin = currentUser.role === 'enforcement_admin';
+  document.getElementById('tabBtnPayments').style.display = isEncAdmin ? '' : 'none';
+  if(isEncAdmin) loadEncPayments();
+  document.title = 'Citation Report — ' + selectedInstance.name;
+
+  populateFilterOptions();
+  render();
+}
+
+function populateFilterOptions(){
+  const typeSel = document.getElementById('fType');
+  typeSel.innerHTML = '<option value="">All types</option>' +
+    citationTypes.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+  const lotSel = document.getElementById('fLot');
+  lotSel.innerHTML = '<option value="">All lots</option>' +
+    parkingLots.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+  const officerSel = document.getElementById('fOfficer');
+  const officers = [...new Set(citations.map(c=>c.officer_name).filter(Boolean))].sort();
+  officerSel.innerHTML = '<option value="">All officers</option>' +
+    officers.map(o => `<option value="${o}">${o}</option>`).join('');
+}
+
+// ---------- Helpers ----------
+
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d+"T00:00:00");
+  return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtMoney(n){ return '$' + n; }
+function statusClass(s){ return s.toLowerCase(); }
+function repeatCount(plate){
+  // Dismissed/Void citations were determined NOT to be valid violations
+  // (dispute upheld, or issued in error) -- they shouldn't count as offenses.
+  return citations.filter(c => c.plate === plate && c.status !== 'Dismissed' && c.status !== 'Void').length;
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.filters input, .filters select').forEach(el=>{
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+});
+
+let sortDir = 'desc';
+function toggleSort(){
+  sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  document.getElementById('sortArrow').innerHTML = sortDir === 'asc' ? '&#9650;' : '&#9660;';
+  render();
+}
+
+function resetFilters(){
+  ['fPlate','fStatus','fType','fLot','fOfficer','fFrom','fTo'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+// ---------- Render ----------
+
+function render(){
+  const plateQ = document.getElementById('fPlate').value.trim().toUpperCase();
+  const statusQ = document.getElementById('fStatus').value;
+  const typeQ = document.getElementById('fType').value;
+  const lotQ = document.getElementById('fLot').value;
+  const officerQ = document.getElementById('fOfficer').value;
+  const fromQ = document.getElementById('fFrom').value;
+  const toQ = document.getElementById('fTo').value;
+
+  const filtered = citations.filter(c=>{
+    if(plateQ && !c.plate.includes(plateQ)) return false;
+    if(statusQ && c.status!==statusQ) return false;
+    if(typeQ && c.citation_type_name!==typeQ) return false;
+    if(lotQ && c.lot_name!==lotQ) return false;
+    if(officerQ && c.officer_name!==officerQ) return false;
+    if(fromQ && c.issued_at < fromQ) return false;
+    if(toQ && c.issued_at > toQ) return false;
+    return true;
+  });
+
+  filtered.sort((a,b)=>{
+    if(a.issued_at < b.issued_at) return sortDir === 'asc' ? -1 : 1;
+    if(a.issued_at > b.issued_at) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const body = document.getElementById('tableBody');
+  body.innerHTML = '';
+  filtered.forEach(c=>{
+    const rc = repeatCount(c.plate);
+    const repeatFlag = rc >= 2 ? `<span class="repeat-flag">&#9888; ${rc}x</span>` : '';
+    const unitCell = c.unit_code ? `<span class="unit-cell">${c.unit_code}</span>` : `<span class="unit-cell unmatched">Unmatched</span>`;
+    const hasResolution = c.status !== 'Disputed' && c.resolved_by_user_id;
+    const actionBtn = c.status === 'Disputed'
+      ? `<button class="edit-btn review" onclick="openDisputeModal(${c.id})">Review Dispute</button>`
+      : hasResolution
+        ? `<button class="edit-btn" onclick="openResolutionModal(${c.id})">Resolution</button>`
+        : `<span style="color:var(--gray-mid);font-size:11.5px;">&mdash;</span>`;
+    const photoBtn = (c.photo_urls && c.photo_urls.length)
+      ? `<button class="edit-btn" onclick="openPhotoModal(${c.id})">&#128247; ${c.photo_urls.length}</button>`
+      : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${fmtDate(c.issued_at)}</td>
+      <td><span class="plate">${c.plate}</span>${repeatFlag}</td>
+      <td>${unitCell}</td>
+      <td><span class="type-pill">${c.citation_type_name}</span></td>
+      <td class="fine-cell">${fmtMoney(c.fine_amount)}</td>
+      <td><span class="status-pill status-${statusClass(c.status)}">${c.status}</span></td>
+      <td>${c.officer_name || '—'}</td>
+      <td>${c.lot_name || '—'}</td>
+      <td class="row-actions">${actionBtn}${photoBtn}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  document.getElementById('noResults').style.display = filtered.length ? 'none' : 'block';
+  document.getElementById('citationTable').style.display = filtered.length ? 'table' : 'none';
+
+  document.getElementById('statTotal').textContent = filtered.length;
+  document.getElementById('statFines').textContent = fmtMoney(filtered.filter(c => !['Dismissed', 'Void'].includes(c.status)).reduce((sum,c)=>sum+c.fine_amount,0));
+  document.getElementById('statDisputed').textContent = filtered.filter(c=>c.status==='Disputed').length;
+  document.getElementById('statPaid').textContent = filtered.filter(c=>c.status==='Paid').length;
+  const platesInView = [...new Set(filtered.map(c=>c.plate))];
+  document.getElementById('statRepeat').textContent = platesInView.filter(p=>repeatCount(p)>=2).length;
+}
+
+// ---------- Dispute review ----------
+// The real backend only supports two outcomes for a Disputed citation: 'approve'
+// (dismiss it) or 'deny' (it reverts to Active, fine stands). There's no separate
+// "Void" path through dispute resolution -- Void is a distinct admin action for a
+// different situation (e.g. citation issued in error), not a dispute outcome.
+
+let disputeEditingId = null;
+
+function openDisputeModal(id){
+  const c = citations.find(x=>x.id===id);
+  if(!c || c.status !== 'Disputed') return;
+  disputeEditingId = id;
+
+  document.getElementById('disputeModalSub').textContent = `${c.plate} \u00b7 ${c.citation_type_name} \u00b7 ${fmtDate(c.issued_at)}`;
+  document.getElementById('disputeCitationSummary').innerHTML =
+    `<b>Fine:</b> ${fmtMoney(c.fine_amount)} &middot; <b>Lot:</b> ${c.lot_name || '\u2014'} &middot; <b>Officer:</b> ${c.officer_name || '\u2014'}` +
+    (c.status_before_dispute === 'Paid' ? `<div style="margin-top:6px;"><b>Already paid.</b> Accepting the dispute refunds an online payment in full; declining leaves it Paid.</div>` : '');
+
+  document.getElementById('disputeReasonBox').innerHTML =
+    `<div class="label">Appellant statement</div>
+     <div style="margin-top:4px;"><b>${c.appellant_email || '(unknown)'}</b></div>
+     <div style="margin-top:6px;">${c.dispute_reason || '(no reason on file)'}</div>`;
+
+  const photosRow = document.getElementById('disputePhotosRow');
+  if(c.photo_urls && c.photo_urls.length){
+    photosRow.style.display = 'block';
+    photosRow.innerHTML = `<div class="label" style="margin-bottom:6px;">Photos from the citation</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">${c.photo_urls.map(url => `<img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--gray-line, #DEDAD5);">`).join('')}</div>`;
+  } else {
+    photosRow.style.display = 'none';
+  }
+
+  document.getElementById('disputeComment').value = '';
+  document.getElementById('disputeModalError').style.display = 'none';
+  document.getElementById('disputeModalOverlay').classList.add('open');
+}
+
+// ---------- Payments (Enforcement Admin) ----------
+let encPayAccount = null, encPayments = [];
+const money = c => '$' + ((c || 0) / 100).toFixed(2);
+
+async function loadEncPayments(){
+  const pid = currentUser.enforcement_profile_id || selectedInstance.enforcement_profile_id;
+  if(!pid) return;
+  try{
+    encPayAccount = await api('GET', `/enforcement-profiles/${pid}/payment-account`);
+    encPayments = await api('GET', `/enforcement-profiles/${pid}/payments`);
+  }catch(e){ console.error('Could not load payments:', e.message); }
+  renderEncPayments();
+}
+
+function renderEncPayments(){
+  const st = document.getElementById('encPayStatus'), act = document.getElementById('encPayActions');
+  if(!encPayAccount){ st.textContent = 'Payment details are unavailable.'; act.innerHTML = ''; }
+  else if(encPayAccount.connected){
+    st.innerHTML = `<b style="color:#2F7A4F;">Connected</b> &nbsp;Account <code>${encPayAccount.account_id}</code> since ${encPayAccount.connected_at}`;
+    act.innerHTML = `<button class="modal-btn-secondary" onclick="setEncPaymentAccount(false)">Disconnect</button>`;
+  } else {
+    st.innerHTML = `<b style="color:#8A8A8A;">Not connected</b> &nbsp;Drivers can't pay online yet.`;
+    act.innerHTML = `<button class="modal-btn-primary" onclick="setEncPaymentAccount(true)">Connect Payment Account (simulated)</button>`;
+  }
+  const body = document.getElementById('encPaymentsBody');
+  body.innerHTML = encPayments.length ? encPayments.map(p => `
+    <tr>
+      <td>${(p.paid_at || p.created_at || '').slice(0,10)}</td>
+      <td>${p.description || ''}${p.mode === 'simulated' ? ' <span style="font-size:10px;font-weight:700;color:#7A5A00;background:#FFF4CC;padding:2px 6px;border-radius:10px;">SIMULATED</span>' : ''}</td>
+      <td>${p.payer_email || '\u2014'}</td>
+      <td>${money(p.base_cents)}</td>
+      <td>${money(p.card_fee_cents)}</td>
+      <td><b>${money(p.total_cents)}</b></td>
+      <td title="${p.refund_reason || ''}">${p.status === 'refunded' ? 'Refunded ' + (p.refunded_at || '').slice(0,10) : p.status.charAt(0).toUpperCase() + p.status.slice(1)}</td>
+    </tr>`).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--gray-mid);padding:20px;">No payments yet.</td></tr>`;
+}
+
+async function setEncPaymentAccount(connect){
+  if(!connect && !confirm('Disconnect the payment account? Drivers will no longer be able to pay online.')) return;
+  const pid = currentUser.enforcement_profile_id || selectedInstance.enforcement_profile_id;
+  try{
+    encPayAccount = await api(connect ? 'POST' : 'DELETE', `/enforcement-profiles/${pid}/payment-account`);
+    renderEncPayments();
+  }catch(e){ alert(e.message); }
+}
+
+function switchTab(tab){
+  const map = {team: 'Team', report: 'Report', background: 'Background', payments: 'Payments'};
+  Object.entries(map).forEach(([key, label]) => {
+    document.getElementById(`tabBtn${label}`).classList.toggle('active', key === tab);
+    document.getElementById(`panel${label}`).classList.toggle('active', key === tab);
+  });
+}
+
+function renderBg(){
+  const preview = document.getElementById('bgPreview');
+  const removeBtn = document.getElementById('removeBgBtn');
+  if(!selectedInstance.enforcement_profile_id){
+    preview.innerHTML = `<div class="placeholder">This Instance has no Enforcement Profile selected -- nothing to attach a background to yet.</div>`;
+    document.getElementById('bgUpload').disabled = true;
+    removeBtn.style.display = 'none';
+    return;
+  }
+  document.getElementById('bgUpload').disabled = false;
+  preview.innerHTML = currentBgDataUrl
+    ? `<img src="${currentBgDataUrl}" alt="Current permit background">`
+    : `<div class="placeholder">No background uploaded</div>`;
+  removeBtn.style.display = currentBgDataUrl ? 'inline-block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('bgUpload').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      pendingBgDataUrl = ev.target.result;
+      document.getElementById('newBgPreview').innerHTML = `<img src="${pendingBgDataUrl}" alt="New background preview">`;
+      document.getElementById('newBgBlock').style.display = 'block';
+      document.getElementById('saveBgBtn').disabled = false;
+      document.getElementById('cancelBgBtn').style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+async function saveBg(){
+  if(!selectedInstance.enforcement_profile_id || !pendingBgDataUrl) return;
+  try{
+    const result = await api('PUT', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/permit-background`,
+      {permit_background_data_url: pendingBgDataUrl});
+    currentBgDataUrl = result.permit_background_data_url;
+    cancelBgUpload();
+    renderBg();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+function cancelBgUpload(){
+  pendingBgDataUrl = null;
+  document.getElementById('bgUpload').value = '';
+  document.getElementById('newBgBlock').style.display = 'none';
+  document.getElementById('newBgPreview').innerHTML = '';
+  document.getElementById('saveBgBtn').disabled = true;
+  document.getElementById('cancelBgBtn').style.display = 'none';
+}
+
+async function removeBg(){
+  if(!selectedInstance.enforcement_profile_id) return;
+  if(!confirm('Remove the permit background? PDF permits will go out with no backdrop until a new one is uploaded.')) return;
+  try{
+    await api('DELETE', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/permit-background`);
+    currentBgDataUrl = null;
+    renderBg();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+let team = [];
+let editingMemberId = null;
+
+async function refreshTeam(){
+  const body = document.getElementById('teamBody');
+  if(!selectedInstance.enforcement_profile_id){
+    team = [];
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:20px;">${selectedInstance.name} has no Enforcement company selected yet, so there is no team to manage.</td></tr>`;
+    return;
+  }
+  team = await api('GET', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/team`);
+  if(!team.length){
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:20px;">No team members yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = team.map(m => {
+    const [first, ...rest] = (m.name || '').split(' ');
+    const last = rest.join(' ');
+    return `
+    <tr>
+      <td>${first || m.name}</td><td>${last}</td><td>${m.phone || '\u2014'}</td><td>${m.email}</td>
+      <td><span class="role-pill">${m.role === 'enforcement_admin' ? 'Enforcement-Admin' : 'Patrol'}</span></td>
+      <td><button class="edit-btn" onclick="openMemberModal(${m.id})">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openMemberModal(userId){
+  editingMemberId = userId || null;
+  const m = userId ? team.find(x => x.id === userId) : null;
+  document.getElementById('memberModalTitle').textContent = m ? 'Edit Member' : 'Create New Member';
+  document.getElementById('memberModalSub').textContent = selectedInstance.name;
+  document.getElementById('memberModalError').style.display = 'none';
+  document.getElementById('memberModalSuccess').style.display = 'none';
+  document.getElementById('memberModalFields').style.display = 'block';
+  document.getElementById('memberSaveBtn').style.display = 'inline-block';
+  if(m){
+    const [first, ...rest] = (m.name || '').split(' ');
+    document.getElementById('memberRole').value = m.role;
+    document.getElementById('memberRole').disabled = true;
+    document.getElementById('memberFirst').value = first || m.name;
+    document.getElementById('memberLast').value = rest.join(' ');
+    document.getElementById('memberEmail').value = m.email;
+    document.getElementById('memberEmail').disabled = true;
+    document.getElementById('memberPhone').value = m.phone || '';
+    document.getElementById('memberDeleteBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('memberRole').value = 'patrol';
+    document.getElementById('memberRole').disabled = false;
+    document.getElementById('memberFirst').value = '';
+    document.getElementById('memberLast').value = '';
+    document.getElementById('memberEmail').value = '';
+    document.getElementById('memberEmail').disabled = false;
+    document.getElementById('memberPhone').value = '';
+    document.getElementById('memberDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('memberModalOverlay').classList.add('open');
+}
+
+async function saveMember(){
+  const errEl = document.getElementById('memberModalError');
+  const btn = document.getElementById('memberSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const first = document.getElementById('memberFirst').value.trim();
+  const last = document.getElementById('memberLast').value.trim();
+  try{
+    if(editingMemberId){
+      await api('PUT', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/team/${editingMemberId}`, {
+        name: `${first} ${last}`.trim(),
+        phone: document.getElementById('memberPhone').value.trim(),
+      });
+      closeModal('memberModalOverlay');
+      await refreshTeam();
+    } else {
+      const result = await api('POST', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/team`, {
+        role: document.getElementById('memberRole').value,
+        name: `${first} ${last}`.trim(),
+        email: document.getElementById('memberEmail').value.trim(),
+        phone: document.getElementById('memberPhone').value.trim(),
+      });
+      document.getElementById('memberModalFields').style.display = 'none';
+      document.getElementById('memberSaveBtn').style.display = 'none';
+      const successEl = document.getElementById('memberModalSuccess');
+      successEl.innerHTML = inviteHtml('Team member added.', {...result, created_new_account: true}, '');
+      successEl.style.display = 'block';
+      await refreshTeam();
+    }
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteMember(){
+  if(!confirm('Remove this team member? They will lose access to this Instance.')) return;
+  try{
+    await api('DELETE', `/enforcement-profiles/${selectedInstance.enforcement_profile_id}/team/${editingMemberId}`);
+    closeModal('memberModalOverlay');
+    await refreshTeam();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+function closeModal(overlayId){ document.getElementById(overlayId).classList.remove('open'); }
+
+function closeDisputeModal(){
+  document.getElementById('disputeModalOverlay').classList.remove('open');
+  disputeEditingId = null;
+}
+
+function openPhotoModal(id){
+  const c = citations.find(x => x.id === id);
+  if(!c) return;
+  document.getElementById('photoModalSub').textContent = `${c.plate} \u00b7 ${c.citation_type_name} \u00b7 ${fmtDate(c.issued_at)}`;
+  document.getElementById('photoModalGrid').innerHTML = (c.photo_urls || []).map(url => `
+    <img src="${url}" style="max-width:260px;max-height:260px;border-radius:8px;border:1px solid var(--gray-line, #DEDAD5);">
+  `).join('');
+  document.getElementById('photoModalOverlay').classList.add('open');
+}
+
+function closePhotoModal(){
+  document.getElementById('photoModalOverlay').classList.remove('open');
+}
+
+async function resolveDispute(outcome){
+  const errEl = document.getElementById('disputeModalError');
+  const comment = document.getElementById('disputeComment').value.trim();
+  document.getElementById('declineBtn').disabled = true;
+  document.getElementById('approveBtn').disabled = true;
+  errEl.style.display = 'none';
+  try{
+    await api('POST', `/citations/${disputeEditingId}/resolve`, {outcome, resolution_notes: comment || undefined});
+    closeDisputeModal();
+    if(currentUser.role === 'enforcement_admin') loadEncPayments();
+    citations = await api('GET', `/instances/${selectedInstance.id}/citations`);
+    populateFilterOptions();
+    render();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    document.getElementById('declineBtn').disabled = false;
+    document.getElementById('approveBtn').disabled = false;
+  }
+}
+
+// ---------- Resolution info (read-only, for already-resolved disputes) ----------
+
+function openResolutionModal(id){
+  const c = citations.find(x=>x.id===id);
+  if(!c) return;
+
+  document.getElementById('resolutionModalSub').textContent = `${c.plate} \u00b7 ${c.citation_type_name} \u00b7 ${fmtDate(c.issued_at)}`;
+  document.getElementById('resolutionCitationSummary').innerHTML =
+    `<b>Fine:</b> ${fmtMoney(c.fine_amount)} &middot; <b>Lot:</b> ${c.lot_name || '\u2014'} &middot; <b>Officer:</b> ${c.officer_name || '\u2014'} &middot; <b>Outcome:</b> <span class="status-pill status-${statusClass(c.status)}">${c.status}</span>`;
+
+  document.getElementById('resolutionReasonBox').innerHTML =
+    `<div class="label">Appellant statement</div>
+     <div style="margin-top:4px;"><b>${c.appellant_email || '(unknown)'}</b></div>
+     <div style="margin-top:6px;">${c.dispute_reason || '(no reason on file)'}</div>`;
+
+  document.getElementById('resolutionAdminComment').textContent =
+    (c.resolution_notes ? `${c.resolution_notes} \u2014 ${c.resolved_by_name || 'staff'}` : '(no comment recorded)');
+
+  document.getElementById('resolutionModalOverlay').classList.add('open');
+}
+
+function closeResolutionModal(){
+  document.getElementById('resolutionModalOverlay').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  [...document.querySelectorAll('.modal-overlay')].forEach(ov=>{
+    ov.addEventListener('click', e=>{ if(e.target === ov) ov.classList.remove('open'); });
+  });
+});
+
+// ===================== Patrol section (was enforcement_patrol_wired.html) =====================
+
+/* shared: API_BASE -- defined once by the portal shell */
+
+/* shared: authToken -- defined once by the portal shell */
+/* shared: currentUser -- defined once by the portal shell */
+let myInstances = [];
+let pat_selectedInstance = null;
+let pat_citationTypes = [];       // with resolved fine per type for this Instance
+let pat_parkingLots = [];
+let instanceCitations = [];   // all citations for this Instance (for repeat-offender flagging + today's log)
+let currentPlate = null;
+let currentPlateInfo = null;
+let selectedPhotos = [];  // compressed base64 data URIs, ready to submit
+
+/* shared: api -- defined once by the portal shell */
+
+// ---------- Login ----------
+
+/* shared: doLogin -- defined once by the portal shell */
+
+/* shared: doLogout -- defined once by the portal shell */
+
+// ---------- Bootstrap ----------
+
+async function patrolInit(){
+  const allowedRoles = ['global_admin', 'company_admin', 'location_admin', 'instance_admin', 'enforcement_admin', 'patrol'];
+  if(!allowedRoles.includes(currentUser.role)){
+    sectionNote('patrol').textContent =
+      "This account's role (" + currentUser.role.replace('_',' ') + ") can't issue citations. Sign in as Enforcement Admin or Patrol staff.";
+    return;
+  }
+  myInstances = await api('GET', '/auth/my-instances');
+  if(!myInstances.length){
+    sectionNote('patrol').textContent =
+      'This account has no Instance to patrol. Sign in as Enforcement Admin or Patrol staff.';
+    return;
+  }
+  // A patrol officer covering multiple properties would get a picker here;
+  // this demo account is linked to one Instance.
+  pat_selectedInstance = myInstances[0];
+  applyBranding(pat_selectedInstance.id);
+
+  const [types, lots, citations] = await Promise.all([
+    api('GET', `/companies/${pat_selectedInstance.company_id}/citation-types?instance_id=${pat_selectedInstance.id}`),
+    api('GET', `/instances/${pat_selectedInstance.id}/parking-lots`),
+    api('GET', `/instances/${pat_selectedInstance.id}/citations`),
+  ]);
+  const resolvedFines = await Promise.all(types.map(t => api('GET', `/instances/${pat_selectedInstance.id}/citation-types/${t.id}/fine`)));
+  pat_citationTypes = types.map((t,i) => ({...t, fine: resolvedFines[i].fine}));
+  pat_parkingLots = lots;
+  instanceCitations = citations;
+
+  document.getElementById('officerLabel').textContent = currentUser.name;
+  document.getElementById('pat_instanceLabel').textContent = pat_selectedInstance.name;
+  document.title = 'Create Citation — ' + pat_selectedInstance.name;
+  document.getElementById('asOfLabel').textContent = fmtLong(todayISO());
+
+  const lotSel = document.getElementById('lotSelect');
+  lotSel.innerHTML = pat_parkingLots.map(l => `<option value="${l.id}">${l.name}</option>`).join('')
+    || '<option value="">No Lots configured</option>';
+
+  const vtSel = document.getElementById('violationType');
+  vtSel.innerHTML = pat_citationTypes.map(t => `<option value="${t.id}">${t.name} (${fmtMoney(t.fine)})</option>`).join('');
+  updateFinePreview();
+
+  renderLog();
+}
+
+// ---------- Helpers ----------
+
+function todayISO(){ return localDateISO(); }
+/* shared: fmtDate -- defined once by the portal shell */
+function fmtLong(d){
+  const dt = new Date(d+"T00:00:00");
+  return dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',year:'numeric'});
+}
+/* shared: fmtMoney -- defined once by the portal shell */
+function pat_statusClass(s){ return s.toLowerCase().replace(' ', '-'); }
+function pat_repeatCount(plate){
+  // Dismissed/Void citations were determined NOT to be valid violations
+  // (dispute upheld, or issued in error) -- they shouldn't count as offenses.
+  return instanceCitations.filter(c => c.plate === plate && c.status !== 'Dismissed' && c.status !== 'Void').length;
+}
+
+function updateFinePreview(){
+  const typeId = document.getElementById('violationType').value;
+  const t = pat_citationTypes.find(x=>String(x.id)===String(typeId));
+  document.getElementById('finePreview').textContent = t ? `Fine: ${fmtMoney(t.fine)}` : '';
+}
+
+// ---------- Check plate ----------
+
+async function checkPlate(){
+  const raw = document.getElementById('plateInput').value.trim().toUpperCase();
+  if(!raw) return;
+  currentPlate = raw;
+
+  const resultEl = document.getElementById('authResult');
+  const formEl = document.getElementById('citationForm');
+  const confirmEl = document.getElementById('confirmBox');
+  const btn = document.getElementById('checkBtn');
+  confirmEl.style.display = 'none';
+  btn.disabled = true;
+
+  try{
+    currentPlateInfo = await api('GET', `/instances/${pat_selectedInstance.id}/check-plate?plate=${encodeURIComponent(raw)}`);
+  }catch(e){
+    alert(e.message);
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+
+  const priorCount = pat_repeatCount(raw);
+  const repeatNote = priorCount > 0
+    ? `<div class="auth-detail">&#9888; <b>${priorCount} prior citation${priorCount>1?'s':''}</b> on file for this plate.</div>`
+    : '';
+
+  if(currentPlateInfo.authorized){
+    resultEl.className = 'auth-result authorized';
+    resultEl.innerHTML = `
+      <div class="auth-headline">&#9989; AUTHORIZED</div>
+      <div class="auth-detail"><b>Unit ${currentPlateInfo.unit_code}</b> &middot; ${currentPlateInfo.permit_type} permit &middot; ${currentPlateInfo.guest_name || ''}</div>
+      <div class="auth-detail">Valid through ${fmtDate(currentPlateInfo.end_date)}</div>
+      ${repeatNote}
+    `;
+    resultEl.style.display = 'block';
+    formEl.style.display = 'none';
+  } else {
+    let reason;
+    if(currentPlateInfo.reason === 'expired') reason = `Permit for Unit ${currentPlateInfo.unit_code} expired ${fmtDate(currentPlateInfo.end_date)}.`;
+    else if(currentPlateInfo.reason === 'future') reason = `Permit for Unit ${currentPlateInfo.unit_code} does not start until ${fmtDate(currentPlateInfo.start_date)}.`;
+    else reason = 'No permit found for this plate.';
+
+    resultEl.className = 'auth-result unauthorized';
+    resultEl.innerHTML = `
+      <div class="auth-headline">&#10060; UNAUTHORIZED</div>
+      <div class="auth-detail">${reason}</div>
+      ${repeatNote}
+    `;
+    resultEl.style.display = 'block';
+    formEl.style.display = 'block';
+    document.getElementById('citationError').style.display = 'none';
+    updateFinePreview();
+  }
+}
+
+document.getElementById('plateInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') checkPlate();
+});
+
+function togglePartialSearch(){
+  const box = document.getElementById('partialSearchBox');
+  const showing = box.style.display === 'block';
+  box.style.display = showing ? 'none' : 'block';
+  if(!showing) document.getElementById('partialInput').focus();
+}
+
+async function searchPartialPlate(){
+  const raw = document.getElementById('partialInput').value.trim().toUpperCase();
+  const resultsEl = document.getElementById('partialResults');
+  const btn = document.getElementById('partialSearchBtn');
+  if(raw.length < 2){
+    resultsEl.innerHTML = `<div class="partial-no-results">Enter at least 2 characters to search.</div>`;
+    return;
+  }
+  btn.disabled = true;
+  let matches;
+  try{
+    matches = await api('GET', `/instances/${pat_selectedInstance.id}/search-plates?partial=${encodeURIComponent(raw)}`);
+  }catch(e){
+    resultsEl.innerHTML = `<div class="partial-no-results">${e.message}</div>`;
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+  if(!matches.length){
+    resultsEl.innerHTML = `<div class="partial-no-results">No plates on file match "${raw}".</div>`;
+    return;
+  }
+  resultsEl.innerHTML = `
+    <table>
+      <thead><tr><th>Plate</th><th>Status</th><th>Unit</th><th>Type</th><th>Guest</th></tr></thead>
+      <tbody>
+        ${matches.map(m => `
+          <tr style="cursor:pointer;" onclick="selectPartialMatch('${m.plate.replace(/'/g, "\\'")}')">
+            <td><b>${m.plate}</b></td>
+            <td><span class="status-badge status-${m.status}">${m.status}</span></td>
+            <td>${m.unit_code}</td>
+            <td>${m.permit_type}</td>
+            <td>${m.guest_name || '\u2014'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="scan-hint">Tap a row to check that plate in full above.</div>
+  `;
+}
+
+function selectPartialMatch(plate){
+  document.getElementById('plateInput').value = plate;
+  document.getElementById('partialSearchBox').style.display = 'none';
+  checkPlate();
+}
+
+document.getElementById('partialInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') searchPartialPlate();
+});
+
+function cancelCitation(){
+  document.getElementById('citationForm').style.display = 'none';
+  document.getElementById('authResult').style.display = 'none';
+  document.getElementById('plateInput').value = '';
+  currentPlate = null;
+  currentPlateInfo = null;
+  selectedPhotos = [];
+  renderPhotoPreviews();
+}
+
+async function handlePhotoSelection(event){
+  const files = Array.from(event.target.files);
+  const errEl = document.getElementById('citationError');
+  errEl.style.display = 'none';
+  for(const file of files){
+    if(selectedPhotos.length >= 3){
+      errEl.textContent = 'A citation can have at most 3 photos.';
+      errEl.style.display = 'block';
+      break;
+    }
+    try{
+      const compressed = await compressImageFile(file);
+      selectedPhotos.push(compressed);
+    }catch(e){
+      errEl.textContent = `Couldn't process that photo: ${e.message}`;
+      errEl.style.display = 'block';
+    }
+  }
+  event.target.value = '';  // allow re-selecting the same file again later
+  renderPhotoPreviews();
+}
+
+function compressImageFile(file){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read the file.'));
+    reader.onload = () => {
+      img.onerror = () => reject(new Error('Could not load the image.'));
+      img.onload = () => {
+        const maxDim = 1200;
+        let {width, height} = img;
+        if(width > maxDim || height > maxDim){
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removePhoto(index){
+  selectedPhotos.splice(index, 1);
+  renderPhotoPreviews();
+}
+
+function renderPhotoPreviews(){
+  const row = document.getElementById('photoPreviewRow');
+  row.innerHTML = selectedPhotos.map((p, i) => `
+    <div style="position:relative;">
+      <img src="${p}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid #DEDAD5;">
+      <button type="button" onclick="removePhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#B23B3B;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;">&times;</button>
+    </div>`).join('');
+}
+
+async function submitCitation(){
+  if(!currentPlate){
+    const errEl = document.getElementById('citationError');
+    errEl.textContent = 'Check a plate before issuing a citation.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const citation_type_id = document.getElementById('violationType').value;
+  const lot_id = document.getElementById('lotSelect').value;
+  const errEl = document.getElementById('citationError');
+  const btn = document.getElementById('issueBtn');
+
+  btn.disabled = true;
+  errEl.style.display = 'none';
+  try{
+    const result = await api('POST', `/instances/${pat_selectedInstance.id}/citations`, {
+      citation_type_id: Number(citation_type_id), plate: currentPlate,
+      parking_lot_id: lot_id ? Number(lot_id) : null,
+      photos: selectedPhotos,
+    });
+
+    const t = pat_citationTypes.find(x=>String(x.id)===String(citation_type_id));
+    const confirmEl = document.getElementById('confirmBox');
+    confirmEl.innerHTML = `<b>Citation issued.</b> ${currentPlate} &middot; ${t.name} &middot; ${fmtMoney(t.fine)}.`;
+    confirmEl.style.display = 'block';
+
+    document.getElementById('citationForm').style.display = 'none';
+    document.getElementById('authResult').style.display = 'none';
+    document.getElementById('plateInput').value = '';
+    currentPlate = null;
+    currentPlateInfo = null;
+    selectedPhotos = [];
+    renderPhotoPreviews();
+
+    instanceCitations = await api('GET', `/instances/${pat_selectedInstance.id}/citations`);
+    renderLog();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function renderLog(){
+  const today = todayISO();
+  const todaysLog = instanceCitations.filter(c => c.issued_by_user_id === currentUser.id && c.issued_at === today);
+  const body = document.getElementById('logBody');
+  body.innerHTML = '';
+  todaysLog.slice().reverse().forEach(c=>{
+    const t = pat_citationTypes.find(x=>x.id===c.citation_type_id);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.id}</td>
+      <td>${c.issued_at}</td>
+      <td><span class="plate">${c.plate}</span></td>
+      <td>${c.citation_type_name}</td>
+      <td>${fmtMoney(c.fine_amount)}</td>
+      <td><span class="status-pill status-${pat_statusClass(c.status)}">${c.status}</span></td>
+    `;
+    body.appendChild(tr);
+  });
+  document.getElementById('emptyLog').style.display = todaysLog.length ? 'none' : 'block';
+  document.getElementById('logTable').style.display = todaysLog.length ? 'table' : 'none';
+}
+
+trySessionFromStorage();
+
+// ---------- Branding: Instance logo (top-left) + Company footer ----------
+// Read from the public branding lookup, so it works with or without a login.
+const _brandCache = {};
+async function applyBranding(instanceId, showLogo = true){
+  try{
+    if(!instanceId){ setBranding(null); return; }
+    if(!_brandCache[instanceId]){
+      const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+      if(!r.ok) return;
+      _brandCache[instanceId] = await r.json();
+    }
+    setBranding(_brandCache[instanceId], showLogo);
+  }catch(e){ /* cosmetic only */ }
+}
+function setBranding(b, showLogo = true){
+  const logo = b && showLogo ? b.logo_data_url : null;
+  document.querySelectorAll('.brand-header-logo').forEach(img => {
+    img.style.display = logo ? 'block' : 'none';
+    if(logo) img.src = logo;
+  });
+  const footLogo = b ? b.footer_logo_data_url : null, footText = b ? b.footer_text : null;
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = footLogo ? 'block' : 'none';
+  if(footLogo) fl.src = footLogo;
+  document.getElementById('brandFooterText').textContent = footText || '';
+  document.getElementById('brandFooter').style.display = (footLogo || footText) ? 'flex' : 'none';
+}
+</script>
+</body>
+</html>

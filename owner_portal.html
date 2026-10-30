@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner Portal — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --status-active:#2F7A4F; --status-active-bg:#E4F3E8;
+    --status-future:#2F6FA7; --status-future-bg:#E5EEF6;
+    --status-pending:#B4791F; --status-pending-bg:#FBEFDD;
+    --status-inactive:#8A8A8A; --status-inactive-bg:#EDEDED;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:6px;flex-wrap:wrap;gap:16px;}
+  .report-title h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .report-title p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .masthead-right{text-align:right;font-size:12.5px;color:var(--gray-mid);}
+  .logout-btn{font-size:11.5px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+  .logout-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+  .unit-switch{font-size:11.5px;font-weight:600;color:var(--coral-dark);background:none;border:1px solid var(--coral-dark);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;margin-top:6px;margin-left:8px;}
+  .unit-switch:hover{background:var(--coral-tint);}
+
+  .tab-nav{display:flex;gap:22px;border-bottom:1px solid var(--gray-line);margin-bottom:20px;}
+  .tab-btn{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--gray-mid);padding:10px 2px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;}
+  .tab-btn.active{color:var(--coral-dark);border-bottom-color:var(--coral);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .unit-card{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:16px 18px;margin-bottom:14px;cursor:pointer;transition:border-color .15s;}
+  .unit-card:hover{border-color:var(--coral);}
+  .unit-card h3{margin:0 0 4px;font-size:15px;font-weight:800;}
+  .unit-card .sub{font-size:12.5px;color:var(--gray-mid);}
+
+  .subsection-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+  .subsection-head h2{font-size:15px;font-weight:800;margin:0;}
+  .add-btn{font-size:12.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-family:inherit;}
+  .add-btn:hover{background:var(--coral-dark);}
+  .add-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;overflow:hidden;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--gray-line);background:#FAFAF8;}
+  td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--gray-line);}
+  tr:last-child td{border-bottom:none;}
+  .edit-btn{font-size:11px;font-weight:600;color:var(--coral-dark);background:none;border:1px solid var(--coral-dark);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;margin-right:4px;}
+  .edit-btn:hover{background:var(--coral-tint);}
+  .del-btn{font-size:11px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;}
+  .del-btn:hover{border-color:#B23B3B;color:#B23B3B;}
+  .empty-note{font-size:12.5px;color:var(--gray-mid);padding:20px;text-align:center;background:var(--surface);border:1px dashed var(--gray-line);border-radius:10px;}
+
+  .status-pill{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .status-Active{background:var(--status-active-bg);color:var(--status-active);}
+  .status-Future{background:var(--status-future-bg);color:var(--status-future);}
+  .status-Pending,.status-Awaiting{background:var(--status-pending-bg);color:var(--status-pending);}
+  .pay-note{display:block;font-size:10.5px;color:var(--gray-mid);margin-top:3px;}
+  .status-Expired,.status-Cancelled{background:var(--status-inactive-bg);color:var(--status-inactive);}
+
+  .filter-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;}
+  .filter-pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-pill{font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:20px;border:1.5px solid var(--status-active);color:var(--status-active);background:#fff;cursor:pointer;}
+  .filter-pill.active{background:var(--status-active);color:#fff;}
+  .search-add{display:flex;gap:10px;align-items:center;}
+  .search-input{font-family:inherit;font-size:12.5px;padding:7px 12px;border:1px solid var(--gray-line);border-radius:6px;width:180px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:6vh;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:#fff;border-radius:12px;width:440px;max-width:92vw;max-height:86vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--gray-line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h2{margin:0;font-size:16px;font-weight:800;}
+  .modal-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .modal-close{background:none;border:none;font-size:18px;color:var(--gray-mid);cursor:pointer;line-height:1;}
+  .modal-body{padding:20px 22px;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field input,.modal-field select{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;}
+  .modal-row{display:flex;gap:12px;}
+  .modal-row .modal-field{flex:1;}
+  .modal-error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .modal-btn-secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary{background:var(--coral);border:none;color:#fff;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary:hover{background:var(--coral-dark);}
+  .modal-btn-primary:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .modal-btn-danger{background:#fff;border:1px solid #B23B3B;color:#B23B3B;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+
+  .trust-card{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:20px;}
+  .trust-card h3{margin:0 0 4px;font-size:14px;font-weight:800;}
+  .trust-card .sub{font-size:12.5px;color:var(--gray-mid);margin-bottom:16px;}
+
+  .footnote{margin-top:16px;font-size:11.5px;color:var(--gray-mid);display:flex;justify-content:space-between;border-top:1px solid var(--gray-line);padding-top:10px;}
+
+  .login-wrap{max-width:380px;margin:12vh auto 0;padding:36px 32px;background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+  .login-wrap h1{font-size:19px;font-weight:800;margin:0 0 4px;}
+  .login-wrap p{font-size:12.5px;color:var(--gray-mid);margin:0 0 22px;}
+  .login-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:11px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;}
+  .login-btn:hover{background:var(--coral-dark);}
+  .login-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .loading-note{text-align:center;padding:60px 20px;color:var(--gray-mid);font-size:13px;}
+  #app{display:none;}
+
+  /* Branding: Instance logo (top-left) and Company footer */
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+  .no-plate-note{font-size:11.5px;color:var(--gray-mid);white-space:nowrap;}
+
+  /* ---- Phones ---- */
+  @media (max-width: 640px){
+    .wrap{padding:14px 12px 40px;}
+    input, select, textarea{font-size:16px !important;}   /* 16px stops iPhone zooming in on tap */
+    .login-wrap{margin:6vh 0 0;padding:28px 20px;}
+    .login-btn{padding:14px 16px;font-size:16px;}
+    .masthead{align-items:flex-start;gap:10px;}
+    .report-title h1{font-size:19px;}
+    .masthead-right{text-align:left;}
+    .logout-btn, .unit-switch{padding:9px 14px;font-size:13px;}
+    .unit-card{padding:16px;}
+    /* Tabs and status filters scroll sideways instead of wrapping */
+    .tab-nav{gap:18px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;}
+    .tab-btn{font-size:15px;padding:12px 2px;}
+    .filter-row{flex-direction:column;align-items:stretch;}
+    .filter-row > *{min-width:0;max-width:100%;}
+    .filter-pills{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+    .filter-pill{font-size:13px;padding:9px 14px;white-space:nowrap;}
+    .search-add{flex-direction:column;align-items:stretch;}
+    .search-input{width:100%;padding:11px 12px;}
+    .add-btn{padding:13px 16px;font-size:15px;}
+    .subsection-head .add-btn{width:100%;}
+    /* Tables become one card per row, each value labelled */
+    table, thead, tbody, tr, td{display:block;}
+    table{background:none;border:none;}
+    thead{display:none;}
+    tr{background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;padding:10px 14px;margin-bottom:10px;}
+    td{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border:none !important;font-size:14px;text-align:right;word-break:break-word;}
+    td::before{content:attr(data-label);color:var(--gray-mid);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:left;flex-shrink:0;padding-top:2px;}
+    td[data-label=""]::before, td:not([data-label])::before{content:none;}
+    td[colspan]{display:block;text-align:center;}
+    tr:has(td[colspan]){background:none;border:none;padding:0;}
+    td.actions-cell{justify-content:flex-start;flex-wrap:wrap;gap:8px;padding-top:10px;}
+    td.actions-cell::before{content:none;}
+    .edit-btn, .del-btn{font-size:14px;padding:9px 16px;margin:0;}
+    .pay-note{text-align:right;}
+    /* Pop-up windows fill the screen */
+    .modal-overlay{padding-top:0;align-items:stretch;}
+    .modal-box{width:100%;max-width:100%;max-height:100%;height:100%;border-radius:0;}
+    .modal-row{flex-direction:column;gap:0;}
+    .modal-field input, .modal-field select{padding:12px 10px;}
+    .modal-close{font-size:26px;padding:4px 8px;}
+    .modal-actions{flex-direction:column-reverse;}
+    .modal-actions button{width:100%;padding:14px;font-size:16px;}
+    .trust-card .modal-field{max-width:none !important;}
+    .trust-card .modal-btn-primary{width:100%;padding:14px;font-size:16px;}
+    .footnote{flex-direction:column;gap:4px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginScreen">
+  <div class="login-wrap">
+    <h1>Owner Portal</h1>
+    <p>Sign in to manage your Unit(s).</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="modal-field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+    <div class="modal-field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <a href="set_password.html?forgot=1&amp;back=owner_portal.html" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:#9C4A45;">Forgot password?</a>
+  </div>
+</div>
+
+<div class="wrap" id="loadingScreen" style="display:none;">
+  <div class="loading-note" id="loadingNote">Loading&hellip;</div>
+</div>
+
+<div class="wrap" id="app">
+
+  <div class="masthead">
+    <div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div class="report-title">
+      <h1>Owner Portal</h1>
+      <p id="unitSubtitle">My Unit</p>
+    </div></div>
+    <div class="masthead-right">
+      <div id="userLabel">&nbsp;</div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+      <button class="unit-switch" id="switchUnitBtn" onclick="showUnitPicker()" style="display:none;">Switch Unit</button>
+    </div>
+  </div>
+
+  <div id="unitPickerPanel" style="display:none;">
+    <div class="subsection-head"><h2>Select a Unit</h2></div>
+    <div id="unitPickerList"></div>
+  </div>
+
+  <div id="unitDetailPanel" style="display:none;">
+    <div class="tab-nav">
+      <button class="tab-btn active" id="tabBtnProfile" onclick="switchTab('profile')">Manage Profile</button>
+      <button class="tab-btn" id="tabBtnPermits" onclick="switchTab('permits')">Permits</button>
+      <button class="tab-btn" id="tabBtnTrust" onclick="switchTab('trust')">Trust Agency</button>
+    </div>
+
+    <!-- ---------- Manage Profile ---------- -->
+    <div class="tab-panel active" id="panelProfile">
+      <div class="subsection-head">
+        <h2>Manage Profile</h2>
+        <button class="add-btn" id="addContactBtn" onclick="openContactModal()">+ Add Contact</button>
+      </div>
+      <table>
+        <thead><tr><th>First Name</th><th>Last Name</th><th>Email</th><th>Phone</th><th>Profile Type</th><th>Actions</th></tr></thead>
+        <tbody id="contactsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ---------- Permits ---------- -->
+    <div class="tab-panel" id="panelPermits">
+      <div class="filter-row">
+        <div class="filter-pills" id="statusFilterPills"></div>
+        <div class="search-add">
+          <input type="text" class="search-input" id="permitSearch" placeholder="Search" oninput="renderPermitsTable()">
+          <button class="add-btn" id="addPermitBtn" onclick="openPermitModal()">+ Create Permit</button>
+        </div>
+      </div>
+      <div class="subsection-head"><h2 id="permitsListTitle">Permits &mdash; Active</h2></div>
+      <table>
+        <thead><tr><th>Pass Type</th><th>Name</th><th>Email</th><th>Plate</th><th>Start</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="permitsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ---------- Trust Agency ---------- -->
+    <div class="tab-panel" id="panelTrust">
+      <div class="subsection-head"><h2>Trust Agency</h2></div>
+      <div class="trust-card">
+        <h3 id="trustCurrentName">No Agency currently trusted</h3>
+        <div class="sub" id="trustCurrentSub">A trusted Agency's staff can create and manage Guest permits for this Unit on your behalf.</div>
+        <div class="modal-error" id="trustError"></div>
+        <div id="trustNoAccessMessage" style="display:none;color:var(--gray-mid);"></div>
+        <div id="trustControls">
+        <div class="modal-field" style="max-width:320px;">
+          <label for="trustAgencySelect">Select an Agency</label>
+          <select id="trustAgencySelect"></select>
+        </div>
+        <button class="modal-btn-primary" id="trustSaveBtn" onclick="saveTrustAgency()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <span id="footUnit">&nbsp;</span>
+    <span>STRPark Owner Portal</span>
+  </div>
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<!-- ---------- Contact Modal ---------- -->
+<div class="modal-overlay" id="contactModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="contactModalTitle">Add Contact</h2><div class="sub" id="contactModalSub"></div></div><button class="modal-close" onclick="closeModal('contactModalOverlay')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="contactModalError"></div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="contactFirst">First Name</label><input type="text" id="contactFirst"></div>
+        <div class="modal-field"><label for="contactLast">Last Name</label><input type="text" id="contactLast"></div>
+      </div>
+      <div class="modal-field"><label for="contactEmail">Email</label><input type="email" id="contactEmail"></div>
+      <div class="modal-field"><label for="contactPhone">Phone</label><input type="text" id="contactPhone"></div>
+      <div class="sub" style="margin:10px 0 4px;">What this contact can do on this Unit</div>
+      <div class="modal-field"><label for="contactPermProfiles">Manage other contacts (add/edit/remove)</label>
+        <select id="contactPermProfiles"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-field"><label for="contactPermPermits">Create/manage permits</label>
+        <select id="contactPermPermits"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-field"><label for="contactPermTrust">Manage Trust Agency</label>
+        <select id="contactPermTrust"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" id="contactDeleteBtn" onclick="deleteContact()" style="display:none;margin-right:auto;color:#B23B3B;border-color:#B23B3B;">Remove Contact</button>
+        <button class="modal-btn-secondary" onclick="closeModal('contactModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="contactSaveBtn" onclick="saveContact()">Save Contact</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Permit Modal ---------- -->
+<div class="modal-overlay" id="permitModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="permitModalTitle">Create Permit</h2><div class="sub" id="permitModalSub"></div></div><button class="modal-close" onclick="closeModal('permitModalOverlay')">&times;</button></div>
+    <div class="modal-body">
+      <div id="permitAgencyMessage" style="display:none;padding:8px 0 4px;color:var(--gray-mid);"></div>
+      <div id="permitFormFields">
+      <div class="modal-error" id="permitModalError"></div>
+      <div class="modal-field">
+        <label for="permitType">Pass Type</label>
+        <select id="permitType" onchange="onPermitTypeChange()"></select>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="permitStart">Start Date</label><input type="date" id="permitStart"></div>
+        <div class="modal-field" id="permitEndField"><label for="permitEnd">End Date</label><input type="date" id="permitEnd"></div>
+      </div>
+      <div class="modal-field"><label for="permitName">Name (optional)</label><input type="text" id="permitName"></div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="permitEmail">Email</label><input type="email" id="permitEmail"></div>
+        <div class="modal-field"><label for="permitPhone">Phone (optional)</label><input type="text" id="permitPhone"></div>
+      </div>
+      <div class="modal-field"><label for="permitPlate">License Plate (optional)</label><input type="text" id="permitPlate"></div>
+      <div class="sub" id="permitInviteNote" style="margin-bottom:14px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('permitModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="permitSaveBtn" onclick="savePermit()">Save Permit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+let authToken = null;
+let currentUser = null;
+let myUnits = [];
+let selectedUnit = null;
+let permits = [];
+let permitTypes = [];
+let contacts = [];
+let availableAgencies = [];
+let permitStatusFilter = 'Active';
+let editingPermitId = null;
+let editingContactId = null;
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function api(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  opts.headers['X-App-Base'] = new URL('.', location.href).href;
+  if(authToken) opts.headers['Authorization'] = `Bearer ${authToken}`;
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if(!res.ok){
+    let msg = `Request failed (${res.status})`;
+    try{ msg = (await res.json()).error || msg; }catch(e){}
+    throw new Error(msg);
+  }
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  try{
+    const result = await api('POST', '/auth/login', {email, password});
+    authToken = result.token;
+    await bootstrap();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function doLogout(){
+  setBranding(null);
+  authToken = null; currentUser = null; myUnits = []; selectedUnit = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+async function bootstrap(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+
+  currentUser = await api('GET', '/auth/me');
+  if(currentUser.role !== 'owner'){
+    document.getElementById('loadingNote').textContent =
+      "This account's role (" + currentUser.role.replace('_',' ') + ") isn't an Owner. Sign in with an Owner account to use this portal.";
+    return;
+  }
+
+  myUnits = await api('GET', '/auth/my-units');
+  if(!myUnits.length){
+    document.getElementById('loadingNote').textContent = 'No Units are linked to this account yet.';
+    return;
+  }
+
+  document.getElementById('userLabel').textContent = `${currentUser.name} \u00b7 owner`;
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  if(myUnits.length > 1){
+    document.getElementById('switchUnitBtn').style.display = 'inline-block';
+    showUnitPicker();
+  } else {
+    await selectUnit(myUnits[0]);
+  }
+}
+
+function showUnitPicker(){
+  document.getElementById('unitDetailPanel').style.display = 'none';
+  document.getElementById('unitPickerPanel').style.display = 'block';
+  const list = document.getElementById('unitPickerList');
+  list.innerHTML = myUnits.map(u => `
+    <div class="unit-card" onclick="selectUnitById(${u.id})">
+      <h3>${u.address}</h3>
+      <div class="sub">${u.instance_name} \u00b7 ${u.company_name} \u00b7 ${u.unit_type_name}</div>
+    </div>`).join('');
+}
+
+async function selectUnitById(id){
+  await selectUnit(myUnits.find(u => u.id === id));
+}
+
+async function selectUnit(unit){
+  selectedUnit = unit;
+  applyBranding(unit.instance_id);
+  document.getElementById('unitPickerPanel').style.display = 'none';
+  document.getElementById('unitDetailPanel').style.display = 'block';
+  document.getElementById('unitSubtitle').textContent = unit.address;
+  document.getElementById('footUnit').textContent = unit.address + ' \u00b7 STRPark';
+  document.getElementById('addContactBtn').style.display = unit.perm_manage_profiles === 'Full Access' ? 'inline-block' : 'none';
+  document.getElementById('addPermitBtn').style.display = unit.perm_create_permits === 'Full Access' ? 'inline-block' : 'none';
+  const canManageTrust = unit.perm_manage_trust_agency === 'Full Access';
+  document.getElementById('trustControls').style.display = canManageTrust ? '' : 'none';
+  document.getElementById('trustNoAccessMessage').style.display = canManageTrust ? 'none' : 'block';
+  document.getElementById('trustNoAccessMessage').textContent = 'Contact your Unit Admin to make this change.';
+  switchTab('profile');
+  await Promise.all([refreshContacts(), refreshPermits(), refreshTrustAgency()]);
+}
+
+function switchTab(tab){
+  ['profile','permits','trust'].forEach(t => {
+    document.getElementById(`tabBtn${t[0].toUpperCase()}${t.slice(1)}`).classList.toggle('active', t === tab);
+    document.getElementById(`panel${t[0].toUpperCase()}${t.slice(1)}`).classList.toggle('active', t === tab);
+  });
+}
+
+// ---------- Manage Profile ----------
+
+async function refreshContacts(){
+  contacts = await api('GET', `/units/${selectedUnit.id}/owners`);
+  const body = document.getElementById('contactsBody');
+  body.innerHTML = contacts.map(c => {
+    const canEdit = selectedUnit.perm_manage_profiles === 'Full Access';
+    const isSelf = c.user_id === currentUser.id;
+    return `
+    <tr>
+      <td>${c.first_name}</td><td>${c.last_name}</td><td>${c.email}</td><td>${c.phone}</td>
+      <td>${isSelf ? 'Primary' : 'Secondary'}</td>
+      <td>${canEdit ? `<button class="edit-btn" onclick="openContactModal(${c.id})">Edit</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function openContactModal(contactId){
+  editingContactId = contactId || null;
+  const c = contactId ? contacts.find(x => x.id === contactId) : null;
+  document.getElementById('contactModalTitle').textContent = c ? 'Edit Contact' : 'Add Contact';
+  document.getElementById('contactModalSub').textContent = selectedUnit.address;
+  document.getElementById('contactModalError').style.display = 'none';
+  document.getElementById('contactFirst').value = c ? c.first_name : '';
+  document.getElementById('contactLast').value = c ? c.last_name : '';
+  document.getElementById('contactEmail').value = c ? c.email : '';
+  document.getElementById('contactPhone').value = c ? c.phone : '';
+  document.getElementById('contactPermProfiles').value = c ? c.perm_manage_profiles : 'Full Access';
+  document.getElementById('contactPermPermits').value = c ? c.perm_create_permits : 'Full Access';
+  document.getElementById('contactPermTrust').value = c ? c.perm_manage_trust_agency : 'Full Access';
+  document.getElementById('contactDeleteBtn').style.display = (c && c.user_id !== currentUser.id) ? 'inline-block' : 'none';
+  document.getElementById('contactModalOverlay').classList.add('open');
+}
+
+async function saveContact(){
+  const errEl = document.getElementById('contactModalError');
+  const btn = document.getElementById('contactSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const payload = {
+    first_name: document.getElementById('contactFirst').value.trim(),
+    last_name: document.getElementById('contactLast').value.trim(),
+    email: document.getElementById('contactEmail').value.trim(),
+    phone: document.getElementById('contactPhone').value.trim(),
+    perm_manage_profiles: document.getElementById('contactPermProfiles').value,
+    perm_create_permits: document.getElementById('contactPermPermits').value,
+    perm_manage_trust_agency: document.getElementById('contactPermTrust').value,
+  };
+  try{
+    if(editingContactId) await api('PUT', `/owners/${editingContactId}`, payload);
+    else await api('POST', `/units/${selectedUnit.id}/owners`, payload);
+    closeModal('contactModalOverlay');
+    await refreshContacts();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteContact(){
+  if(!confirm('Remove this contact from the Unit?')) return;
+  try{
+    await api('DELETE', `/owners/${editingContactId}`);
+    closeModal('contactModalOverlay');
+    await refreshContacts();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+// ---------- Permits ----------
+
+const STATUS_FILTERS = ['Active', 'Pending', 'Awaiting Payment', 'Future', 'Expired', 'Cancelled'];
+
+function renderStatusPills(){
+  document.getElementById('statusFilterPills').innerHTML = STATUS_FILTERS.map(s => `
+    <button class="filter-pill ${s === permitStatusFilter ? 'active' : ''}" onclick="setStatusFilter('${s}')">${s}</button>
+  `).join('');
+}
+
+function setStatusFilter(status){
+  permitStatusFilter = status;
+  renderStatusPills();
+  renderPermitsTable();
+}
+
+async function refreshPermits(){
+  permits = await api('GET', `/units/${selectedUnit.id}/permits`);
+  renderStatusPills();
+  renderPermitsTable();
+}
+
+function renderPermitsTable(){
+  document.getElementById('permitsListTitle').textContent = `Permits \u2014 ${permitStatusFilter}`;
+  const search = document.getElementById('permitSearch').value.trim().toLowerCase();
+  const canManage = selectedUnit.perm_create_permits === 'Full Access';
+  const filtered = permits.filter(p => {
+    if(p.status !== permitStatusFilter) return false;
+    if(!search) return true;
+    return (p.name || '').toLowerCase().includes(search) ||
+           (p.plate || '').toLowerCase().includes(search) ||
+           (p.email || '').toLowerCase().includes(search);
+  });
+  const body = document.getElementById('permitsBody');
+  if(!filtered.length){
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-note">No ${permitStatusFilter.toLowerCase()} permits${search ? ' matching your search' : ''}.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = filtered.map(p => {
+    const canEdit = canManage && (p.status === 'Pending' || p.status === 'Awaiting Payment' || p.status === 'Future');
+    return `
+    <tr>
+      <td>${p.permit_type_name}</td>
+      <td>${p.name || '\u2014'}</td>
+      <td>${p.email}</td>
+      <td>${p.plate || '\u2014'}</td>
+      <td>${p.start_date}</td>
+      <td>${p.end_date || '\u2014'}</td>
+      <td><span class="status-pill status-${p.status}">${p.status}</span>${payNote(p)}</td>
+      <td>${canEdit ? `<button class="edit-btn" onclick="openPermitModal(${p.id})">Edit</button><button class="del-btn" onclick="cancelPermit(${p.id})">Cancel</button>` : ''}${printCell(p)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Print: only when the Unit has no Trust Agency, for any permit with a plate that hasn't been cancelled. Guest permits get
+// their plate from the guest's emailed link, so until then there's nothing to print.
+function printCell(p){
+  // Once the Owner has chosen a Trust Agency, printing is the Agency's job.
+  if(selectedUnit && selectedUnit.trusted_agency_id) return '';
+  if(p.status === 'Cancelled') return '';
+  if(!p.plate) return `<span class="no-plate-note">No plate yet</span>`;
+  if(p.status === 'Awaiting Payment') return `<span class="no-plate-note">Not paid yet</span>`;
+  return `<button class="edit-btn" onclick="printPermit(${p.id})">Print</button>`;
+}
+
+// Payment state under the status: what the guest owes or paid.
+function payNote(p){
+  const n = p.fee_basis === 'daily' && p.fee_nights ? ` (${p.fee_nights} night${p.fee_nights === 1 ? '' : 's'})` : '';
+  if(p.payment_status === 'awaiting') return `<span class="pay-note">Guest owes ${money(p.payment_total_cents)}${n}</span>`;
+  if(p.payment_status === 'paid') return `<span class="pay-note">Paid ${money(p.payment_total_cents)}${n}</span>`;
+  if(p.payment_status === 'awaiting') return `<span class="pay-note">Guest owes ${money(p.payment_total_cents)}</span>`;
+  if(p.payment_status === 'paid') return `<span class="pay-note">Paid ${money(p.payment_total_cents)}</span>`;
+  if(p.payment_status === 'refunded') return `<span class="pay-note">Refunded ${money(p.payment_total_cents)}</span>`;
+  return '';
+}
+
+async function printPermit(permitId){
+  // Printing needs the Owner's or Agency's login, so fetch the PDF with the
+  // token and open it. The window is opened first so pop-up blockers allow it.
+  const win = window.open('', '_blank');
+  try{
+    const res = await fetch(`${API_BASE}/permits/${permitId}/pdf`, {headers: {'Authorization': `Bearer ${authToken}`}});
+    if(!res.ok){
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Could not load the permit PDF (${res.status})`);
+    }
+    const url = URL.createObjectURL(await res.blob());
+    if(win) win.location.href = url; else window.open(url, '_blank');
+  }catch(e){
+    if(win) win.close();
+    alert(e.message);
+  }
+}
+
+async function openPermitModal(permitId){
+  editingPermitId = permitId || null;
+  const p = permitId ? permits.find(x => x.id === permitId) : null;
+  document.getElementById('permitModalTitle').textContent = p ? 'Edit Permit' : 'Create Permit';
+  document.getElementById('permitModalSub').textContent = selectedUnit.address;
+
+  // Creating a NEW permit (not editing an existing one) is Agency-exclusive
+  // once the Unit has a Trust Agency -- show a message instead of the form.
+  const agencyManaged = !p && selectedUnit.trusted_agency_id;
+  document.getElementById('permitFormFields').style.display = agencyManaged ? 'none' : '';
+  document.getElementById('permitSaveBtn').style.display = agencyManaged ? 'none' : 'inline-block';
+  const msgEl = document.getElementById('permitAgencyMessage');
+  if(agencyManaged){
+    msgEl.style.display = 'block';
+    msgEl.textContent = `Please contact your agency, ${selectedUnit.trusted_agency_name}, to create permits.`;
+    document.getElementById('permitModalOverlay').classList.add('open');
+    return;
+  }
+  msgEl.style.display = 'none';
+
+  document.getElementById('permitModalError').style.display = 'none';
+
+  try{
+    // Each Unit's Instance may have its own Location/Instance permit types, so load per Unit.
+    permitTypes = await api('GET', `/companies/${selectedUnit.company_id}/permit-types?instance_id=${selectedUnit.instance_id}`);
+  }catch(e){
+    alert(`Couldn't load permit types: ${e.message}`);
+    return;
+  }
+  if(!permitTypes.length){
+    alert("This Company hasn't set up any Permit Types yet. Contact your Instance Admin or Enterprise Manager.");
+    return;
+  }
+  const typeSel = document.getElementById('permitType');
+  typeSel.innerHTML = permitTypes.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  typeSel.disabled = !!p;
+
+  document.getElementById('permitName').value = p ? (p.name || '') : '';
+  document.getElementById('permitEmail').value = p ? p.email : '';
+  document.getElementById('permitPhone').value = p ? (p.phone || '') : '';
+  document.getElementById('permitStart').value = p ? p.start_date : localDateISO();
+  document.getElementById('permitEnd').value = p ? (p.end_date || '') : '';
+  document.getElementById('permitPlate').value = p ? (p.plate || '') : '';
+  if(p) typeSel.value = p.permit_type_id;
+  onPermitTypeChange();
+  document.getElementById('permitModalOverlay').classList.add('open');
+}
+
+function onPermitTypeChange(){
+  const typeName = document.getElementById('permitType').selectedOptions[0]?.textContent;
+  // Owner-type permits have no end date -- ongoing for as long as the Unit
+  // is owned, not a dated reservation like Guest/Housekeeping/etc.
+  document.getElementById('permitEndField').style.display = typeName === 'Owner' ? 'none' : 'flex';
+  updateInviteNote();
+}
+
+function updateInviteNote(){
+  const typeName = document.getElementById('permitType').selectedOptions[0]?.textContent;
+  const hasPlate = document.getElementById('permitPlate').value.trim();
+  const note = document.getElementById('permitInviteNote');
+  if(typeName !== 'Owner' && !hasPlate){
+    note.textContent = 'No plate yet? Leave it blank and an email will be sent so they can add it themselves later.';
+  } else {
+    note.textContent = '';
+  }
+}
+document.addEventListener('input', e => { if(e.target && e.target.id === 'permitPlate') updateInviteNote(); });
+
+async function savePermit(){
+  const errEl = document.getElementById('permitModalError');
+  const btn = document.getElementById('permitSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const typeName = document.getElementById('permitType').selectedOptions[0]?.textContent;
+  const payload = {
+    permit_type_id: parseInt(document.getElementById('permitType').value, 10),
+    name: document.getElementById('permitName').value.trim() || undefined,
+    email: document.getElementById('permitEmail').value.trim(),
+    phone: document.getElementById('permitPhone').value.trim() || undefined,
+    start_date: document.getElementById('permitStart').value,
+    plate: document.getElementById('permitPlate').value.trim() || undefined,
+  };
+  if(typeName !== 'Owner') payload.end_date = document.getElementById('permitEnd').value;
+  try{
+    if(editingPermitId) await api('PUT', `/permits/${editingPermitId}`, payload);
+    else await api('POST', `/units/${selectedUnit.id}/permits`, payload);
+    closeModal('permitModalOverlay');
+    await refreshPermits();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// A paid permit cancelled before its start date is refunded in full; after that, no refund.
+function cancelConfirmText(p){
+  if(p && p.refund_eligible)
+    return `Cancel this permit? The guest paid ${money(p.payment_total_cents)} and will be refunded in full. This cannot be undone.`;
+  if(p && p.payment_status === 'paid')
+    return "Cancel this permit? The visit has already started, so the guest's payment will NOT be refunded. This cannot be undone.";
+  return 'Cancel this permit? This cannot be undone.';
+}
+const money = c => '$' + ((c || 0) / 100).toFixed(2);
+
+async function cancelPermit(permitId){
+  const p = permits.find(x => x.id === permitId);
+  if(!confirm(cancelConfirmText(p))) return;
+  try{
+    const result = await api('POST', `/permits/${permitId}/cancel`);
+    if(result.payment_status === 'refunded') alert(`Permit cancelled. ${money(result.payment_total_cents)} was refunded to the guest.`);
+    await refreshPermits();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+// ---------- Trust Agency ----------
+
+async function refreshTrustAgency(){
+  availableAgencies = await api('GET', `/units/${selectedUnit.id}/available-agencies`);
+  const sel = document.getElementById('trustAgencySelect');
+  sel.innerHTML = `<option value="">None &mdash; I'll manage rentals myself</option>` +
+    availableAgencies.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  if(selectedUnit.trusted_agency_name){
+    document.getElementById('trustCurrentName').textContent = `Currently trusting: ${selectedUnit.trusted_agency_name}`;
+    const currentlyTrusted = availableAgencies.find(a => a.name === selectedUnit.trusted_agency_name);
+    if(currentlyTrusted) sel.value = currentlyTrusted.id;
+  } else {
+    document.getElementById('trustCurrentName').textContent = 'No Agency currently trusted \u2014 you\u2019re managing rentals yourself';
+    sel.value = '';
+  }
+}
+
+async function saveTrustAgency(){
+  const errEl = document.getElementById('trustError');
+  errEl.style.display = 'none';
+  const rawValue = document.getElementById('trustAgencySelect').value;
+  try{
+    if(!rawValue){
+      // "None" selected -- if a relationship currently exists, end it;
+      // if not, there's nothing to do (already the desired state).
+      if(selectedUnit.trusted_agency_name){
+        const reason = prompt('A reason is required to end this Trust Agency relationship:');
+        if(!reason) return;
+        await api('DELETE', `/units/${selectedUnit.id}/trust-agency`, {reason});
+        selectedUnit.trusted_agency_name = null;
+      }
+    } else {
+      const updated = await api('PUT', `/units/${selectedUnit.id}/trust-agency`, {agency_id: parseInt(rawValue, 10)});
+      selectedUnit.trusted_agency_name = updated.trusted_agency_name;
+    }
+    await refreshTrustAgency();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function closeModal(overlayId){ document.getElementById(overlayId).classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  [...document.querySelectorAll('.modal-overlay')].forEach(ov=>{
+    ov.addEventListener('click', e=>{ if(e.target === ov) closeModal(ov.id); });
+  });
+});
+
+// ---------- Branding: Instance logo (top-left) + Company footer ----------
+// Read from the public branding lookup, so it works with or without a login.
+const _brandCache = {};
+async function applyBranding(instanceId, showLogo = true){
+  try{
+    if(!instanceId){ setBranding(null); return; }
+    if(!_brandCache[instanceId]){
+      const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+      if(!r.ok) return;
+      _brandCache[instanceId] = await r.json();
+    }
+    setBranding(_brandCache[instanceId], showLogo);
+  }catch(e){ /* cosmetic only */ }
+}
+function setBranding(b, showLogo = true){
+  const logo = b && showLogo ? b.logo_data_url : null;
+  document.querySelectorAll('.brand-header-logo').forEach(img => {
+    img.style.display = logo ? 'block' : 'none';
+    if(logo) img.src = logo;
+  });
+  const footLogo = b ? b.footer_logo_data_url : null, footText = b ? b.footer_text : null;
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = footLogo ? 'block' : 'none';
+  if(footLogo) fl.src = footLogo;
+  document.getElementById('brandFooterText').textContent = footText || '';
+  document.getElementById('brandFooter').style.display = (footLogo || footText) ? 'flex' : 'none';
+}
+
+// Phones show each table row as a card; this labels every cell with its
+// column heading (used by the phone layout only) whenever rows are redrawn.
+function labelTableCells(table){
+  const heads = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    [...tr.children].forEach((td, i) => {
+      if(td.hasAttribute('colspan')){ td.setAttribute('data-label', ''); return; }
+      const label = heads[i] || '';
+      if(/^actions?$/i.test(label)) td.classList.add('actions-cell');
+      else td.setAttribute('data-label', label);
+    });
+  });
+}
+document.querySelectorAll('table').forEach(table => {
+  const body = table.querySelector('tbody');
+  if(!body) return;
+  new MutationObserver(() => labelTableCells(table)).observe(body, {childList: true});
+  labelTableCells(table);
+});
+</script>
+</body>
+</html>

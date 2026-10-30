@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agency Portal — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --status-active:#2F7A4F; --status-active-bg:#E4F3E8;
+    --status-future:#2F6FA7; --status-future-bg:#E5EEF6;
+    --status-pending:#B4791F; --status-pending-bg:#FBEFDD;
+    --status-inactive:#8A8A8A; --status-inactive-bg:#EDEDED;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:6px;flex-wrap:wrap;gap:16px;}
+  .report-title h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .report-title p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .masthead-right{text-align:right;font-size:12.5px;color:var(--gray-mid);}
+  .logout-btn{font-size:11.5px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;margin-top:6px;}
+  .logout-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+
+  .tab-nav{display:flex;gap:22px;border-bottom:1px solid var(--gray-line);margin-bottom:20px;margin-top:16px;}
+  .tab-btn{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--gray-mid);padding:10px 2px;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-1px;}
+  .tab-btn.active{color:var(--coral-dark);border-bottom-color:var(--coral);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .subsection-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+  .subsection-head h2{font-size:15px;font-weight:800;margin:0;}
+  .add-btn{font-size:12.5px;font-weight:600;color:#fff;background:var(--coral);border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-family:inherit;}
+  .add-btn:hover{background:var(--coral-dark);}
+  .add-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--gray-line);border-radius:10px;overflow:hidden;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--gray-line);background:#FAFAF8;}
+  td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--gray-line);}
+  tr:last-child td{border-bottom:none;}
+  .edit-btn{font-size:11px;font-weight:600;color:var(--coral-dark);background:none;border:1px solid var(--coral-dark);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;margin-right:4px;}
+  .edit-btn:hover{background:var(--coral-tint);}
+  .del-btn{font-size:11px;font-weight:600;color:var(--gray-mid);background:none;border:1px solid var(--gray-line);border-radius:5px;padding:3px 9px;cursor:pointer;font-family:inherit;margin-right:4px;}
+  .del-btn:hover{border-color:#B23B3B;color:#B23B3B;}
+  .empty-note{font-size:12.5px;color:var(--gray-mid);padding:20px;text-align:center;background:var(--surface);border:1px dashed var(--gray-line);border-radius:10px;}
+
+  .status-pill{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;}
+  .status-Active{background:var(--status-active-bg);color:var(--status-active);}
+  .status-Future{background:var(--status-future-bg);color:var(--status-future);}
+  .status-Pending,.status-Awaiting{background:var(--status-pending-bg);color:var(--status-pending);}
+  .pay-note{display:block;font-size:10.5px;color:var(--gray-mid);margin-top:3px;}
+  .status-Expired,.status-Cancelled{background:var(--status-inactive-bg);color:var(--status-inactive);}
+  .role-pill{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;display:inline-block;background:var(--coral-tint);color:var(--coral-dark);}
+
+  .filter-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:12px;}
+  .filter-pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-pill{font-family:inherit;font-size:11.5px;font-weight:700;padding:6px 14px;border-radius:20px;border:1.5px solid var(--status-active);color:var(--status-active);background:#fff;cursor:pointer;}
+  .filter-pill.active{background:var(--status-active);color:#fff;}
+  .search-add{display:flex;gap:10px;align-items:center;}
+  .search-input{font-family:inherit;font-size:12.5px;padding:7px 12px;border:1px solid var(--gray-line);border-radius:6px;width:180px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:6vh;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:#fff;border-radius:12px;width:460px;max-width:92vw;max-height:86vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--gray-line);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h2{margin:0;font-size:16px;font-weight:800;}
+  .modal-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .modal-close{background:none;border:none;font-size:18px;color:var(--gray-mid);cursor:pointer;line-height:1;}
+  .modal-body{padding:20px 22px;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field input,.modal-field select{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;}
+  .modal-row{display:flex;gap:12px;}
+  .modal-row .modal-field{flex:1;}
+  .modal-error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .modal-success-inline{background:#E4F3E8;color:#2F7A4F;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .modal-success{background:#E4F3E8;color:#2F7A4F;border-radius:6px;padding:12px 14px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;line-height:1.5;}
+  .modal-success code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+  .modal-btn-secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary{background:var(--coral);border:none;color:#fff;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
+  .modal-btn-primary:hover{background:var(--coral-dark);}
+  .modal-btn-primary:disabled{background:var(--gray-line);cursor:not-allowed;}
+
+  .footnote{margin-top:16px;font-size:11.5px;color:var(--gray-mid);display:flex;justify-content:space-between;border-top:1px solid var(--gray-line);padding-top:10px;}
+
+  .login-wrap{max-width:380px;margin:12vh auto 0;padding:36px 32px;background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+  .login-wrap h1{font-size:19px;font-weight:800;margin:0 0 4px;}
+  .login-wrap p{font-size:12.5px;color:var(--gray-mid);margin:0 0 22px;}
+  .login-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:11px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;}
+  .login-btn:hover{background:var(--coral-dark);}
+  .login-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .loading-note{text-align:center;padding:60px 20px;color:var(--gray-mid);font-size:13px;}
+  #app{display:none;}
+
+  /* Branding: Instance logo (top-left) and Company footer */
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginScreen">
+  <div class="login-wrap">
+    <h1>Agency Portal</h1>
+    <p>Sign in to manage your Agency's Units and Permits.</p>
+    <div class="modal-error" id="loginError"></div>
+    <div class="modal-field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+    <div class="modal-field"><label for="loginPassword">Password</label><input type="password" id="loginPassword" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <a href="set_password.html?forgot=1&amp;back=agency_portal.html" style="display:block;text-align:center;margin-top:12px;font-size:13px;color:#9C4A45;">Forgot password?</a>
+  </div>
+</div>
+
+<div class="wrap" id="loadingScreen" style="display:none;">
+  <div class="loading-note" id="loadingNote">Loading&hellip;</div>
+</div>
+
+<div class="wrap" id="app">
+
+  <div class="masthead">
+    <div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div class="report-title">
+      <h1 id="consoleHeading">Agency Portal</h1>
+      <p id="agencySubtitle">&mdash;</p>
+    </div></div>
+    <div class="masthead-right">
+      <div id="userLabel">&nbsp;</div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabBtnTeam" onclick="switchTab('team')">Manage Team</button>
+    <button class="tab-btn" id="tabBtnUnits" onclick="switchTab('units')">Manage Units</button>
+    <button class="tab-btn" id="tabBtnPermits" onclick="switchTab('permits')">Permit Manager</button>
+    <button class="tab-btn" id="tabBtnVehicles" onclick="switchTab('vehicles')">Service Vehicles</button>
+  </div>
+
+  <!-- ---------- Manage Team (Admin only) ---------- -->
+  <div class="tab-panel active" id="panelTeam">
+    <div class="subsection-head">
+      <h2>Manage Team</h2>
+      <button class="add-btn" onclick="openMemberModal()">+ Create Member</button>
+    </div>
+    <table>
+      <thead><tr><th>First Name</th><th>Last Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+      <tbody id="teamBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ---------- Manage Units ---------- -->
+  <div class="tab-panel" id="panelUnits">
+    <div class="filter-row">
+      <div class="subsection-head" style="margin-bottom:0;"><h2>Managed Units</h2></div>
+      <div class="search-add">
+        <input type="text" class="search-input" id="unitSearch" placeholder="Search Unit" oninput="renderUnitsTable()">
+        <button class="add-btn" id="createOwnerBtn" onclick="openOwnerModal()" style="display:none;">+ Create Owner</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Unit</th><th>Instance</th><th>Type</th><th>Owner Name</th><th>Email</th><th>Phone</th><th></th><th>Unit Actions</th></tr></thead>
+      <tbody id="unitsBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ---------- Permit Manager ---------- -->
+  <div class="tab-panel" id="panelPermits">
+    <div class="filter-row">
+      <div class="filter-pills" id="statusFilterPills"></div>
+      <div class="search-add">
+        <input type="text" class="search-input" id="permitSearch" placeholder="Search" oninput="renderPermitsTable()">
+        <button class="add-btn" id="createPermitBtn" onclick="openPermitModal()">+ Create Permit</button>
+      </div>
+    </div>
+    <div class="subsection-head"><h2 id="permitsListTitle">Permits &mdash; Active</h2></div>
+    <table>
+      <thead><tr><th>Pass Type</th><th>Plate</th><th>Author</th><th>Guest</th><th>Email</th><th>Unit</th><th>Start</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="permitsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="tab-panel" id="panelVehicles">
+    <div class="filter-row">
+      <div class="search-add">
+        <button class="add-btn" id="createVehiclePermitBtn" onclick="createVehiclePermit()">+ Create Service Vehicle Permit</button>
+      </div>
+    </div>
+    <div class="subsection-head"><h2>Service Vehicle Permits</h2></div>
+    <div class="modal-error" id="vehiclePermitError" style="display:none;margin-bottom:16px;"></div>
+    <p style="font-size:12.5px;color:var(--gray-mid);margin:0 0 16px;" id="vehiclePermitLimitNote"></p>
+    <table>
+      <thead><tr><th>Valid</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="vehiclePermitsBody"></tbody>
+    </table>
+  </div>
+
+  <div class="footnote">
+    <span id="footAgency">&nbsp;</span>
+    <span>STRPark Agency Portal</span>
+  </div>
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<!-- ---------- Member Modal ---------- -->
+<div class="modal-overlay" id="memberModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="memberModalTitle">Create New Member</h2><div class="sub" id="memberModalSub"></div></div><button class="modal-close" onclick="closeModal('memberModalOverlay')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="memberModalError"></div>
+      <div class="modal-success" id="memberModalSuccess"></div>
+      <div id="memberModalFields">
+        <div class="modal-field">
+          <label for="memberRole">Role</label>
+          <select id="memberRole">
+            <option value="agency_agent">Agent</option>
+            <option value="agency_admin">Agency-Admin</option>
+          </select>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field"><label for="memberFirst">First Name</label><input type="text" id="memberFirst"></div>
+          <div class="modal-field"><label for="memberLast">Last Name</label><input type="text" id="memberLast"></div>
+        </div>
+        <div class="modal-field"><label for="memberEmail">Email</label><input type="email" id="memberEmail"></div>
+        <div class="modal-field"><label for="memberPhone">Phone Number</label><input type="text" id="memberPhone"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" id="memberDeleteBtn" onclick="deleteMember()" style="display:none;margin-right:auto;color:#B23B3B;border-color:#B23B3B;">Remove</button>
+        <button class="modal-btn-secondary" onclick="closeModal('memberModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="memberSaveBtn" onclick="saveMember()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Permit Modal (from a specific Unit) ---------- -->
+<div class="modal-overlay" id="permitModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="permitModalTitle">Create New Permit</h2><div class="sub" id="permitModalSub"></div></div><button class="modal-close" onclick="closeModal('permitModalOverlay')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="permitModalError"></div>
+      <div class="modal-success-inline" id="permitModalSuccess"></div>
+      <div id="permitModalFields">
+        <div class="modal-field" id="permitUnitField">
+          <label for="permitUnit">Unit</label>
+          <select id="permitUnit"></select>
+        </div>
+        <div class="modal-field">
+          <label for="permitType">Pass Type</label>
+          <select id="permitType" onchange="onPermitTypeChange()"></select>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field"><label for="permitStart">Start Date</label><input type="date" id="permitStart"></div>
+          <div class="modal-field" id="permitEndField"><label for="permitEnd">End Date</label><input type="date" id="permitEnd"></div>
+        </div>
+        <div class="modal-field"><label for="permitFirst">First Name (optional)</label><input type="text" id="permitFirst"></div>
+        <div class="modal-field"><label for="permitLast">Last Name (optional)</label><input type="text" id="permitLast"></div>
+        <div class="modal-field"><label for="permitPlate">License Plate (optional)</label><input type="text" id="permitPlate"></div>
+        <div class="modal-field"><label for="permitEmail">Email Address</label><input type="email" id="permitEmail"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('permitModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="permitSaveBtn" onclick="savePermit()">Send Invitation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Create Owner Modal (from Manage Units) ---------- -->
+<div class="modal-overlay" id="ownerModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2 id="ownerModalTitle">Create Owner</h2><div class="sub" id="ownerModalSub">Add a contact to one of your managed Units</div></div><button class="modal-close" onclick="closeModal('ownerModalOverlay')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="ownerModalError"></div>
+      <div class="modal-field">
+        <label for="ownerUnit">Unit</label>
+        <select id="ownerUnit"></select>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field"><label for="ownerFirst">First Name</label><input type="text" id="ownerFirst"></div>
+        <div class="modal-field"><label for="ownerLast">Last Name</label><input type="text" id="ownerLast"></div>
+      </div>
+      <div class="modal-field"><label for="ownerEmail">Email</label><input type="email" id="ownerEmail"></div>
+      <div class="modal-field"><label for="ownerPhone">Phone</label><input type="text" id="ownerPhone"></div>
+      <div class="sub" style="margin:10px 0 4px;">What this Owner can do on this Unit</div>
+      <div class="modal-field"><label for="ownerPermProfiles">Manage other contacts (add/edit/remove)</label>
+        <select id="ownerPermProfiles"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-field"><label for="ownerPermPermits">Create/manage permits</label>
+        <select id="ownerPermPermits"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-field"><label for="ownerPermTrust">Manage Trust Agency</label>
+        <select id="ownerPermTrust"><option>Full Access</option><option>Read Only</option><option>No Access</option></select></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" id="ownerDeleteBtn" onclick="deleteOwner()" style="display:none;margin-right:auto;color:#B23B3B;border-color:#B23B3B;">Remove</button>
+        <button class="modal-btn-secondary" onclick="closeModal('ownerModalOverlay')">Cancel</button>
+        <button class="modal-btn-primary" id="ownerSaveBtn" onclick="saveOwner()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+let authToken = null;
+let currentUser = null;
+let myAgency = null;
+let team = [];
+let units = [];
+let permits = [];
+let permitTypes = {};  // instance_id -> [types] cache: each Instance sees Company-wide types plus its own Location/Instance types
+let permitStatusFilter = 'Active';
+let editingMemberId = null;
+let editingPermitId = null;
+let permitModalUnit = null;
+
+// Safe to embed inside a single-quoted onclick="...('...')" attribute --
+// person names (O'Brien, D'Angelo) can contain apostrophes that would
+// otherwise prematurely close the attribute.
+function safeJson(obj){
+  return JSON.stringify(obj).replace(/'/g, '&#39;');
+}
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// ---------- Invitations (new accounts choose their own password) ----------
+function _escInv(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function inviteHtml(prefix, a, roleText){
+  if(!a) return prefix;
+  if(a.created_new_account === false)
+    return `${prefix} <b>${_escInv(a.email)}</b> already has an STRPark account and signs in with their existing password.`;
+  const inv = a.invitation || {};
+  const exp = inv.expires_at ? new Date(inv.expires_at + 'Z').toLocaleDateString() : '';
+  return `${prefix} We emailed <b>${_escInv(a.name || a.email)}</b> (<code>${_escInv(inv.sent_to || a.email)}</code>) an invitation to choose a password${roleText ? ' and sign in as ' + _escInv(roleText) : ''}.
+    The link works once and expires ${_escInv(exp)}.
+    <div style="margin-top:10px;background:#fff;border:1px dashed #DEDAD5;border-radius:8px;padding:10px 12px;font-size:12px;color:#6E6E6E;">Simulated email &mdash; you can also give them this link yourself:
+      <input readonly value="${_escInv(inv.link || '')}" onclick="this.select()" style="width:100%;font-family:monospace;font-size:11.5px;padding:6px 8px;border:1px solid #DEDAD5;border-radius:6px;margin:6px 0;box-sizing:border-box;">
+      <button type="button" onclick="copyInviteLink(this)" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Copy link</button>
+      <button type="button" onclick="resendInvite(this, '${_escInv(inv.sent_to || a.email)}')" style="font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #DEDAD5;background:#fff;cursor:pointer;">Resend invitation</button>
+      <span class="invite-status"></span></div>`;
+}
+function copyInviteLink(btn){
+  const input = btn.parentElement.querySelector('input'); input.select();
+  try{ navigator.clipboard.writeText(input.value); }catch(e){ document.execCommand('copy'); }
+  btn.parentElement.querySelector('.invite-status').textContent = 'Copied.';
+}
+async function resendInvite(btn, email){
+  const status = btn.parentElement.querySelector('.invite-status'); btn.disabled = true;
+  try{ const inv = await api('POST', '/auth/resend-invitation', {email}); btn.parentElement.querySelector('input').value = inv.link;
+       status.textContent = 'Sent a new link. The earlier one no longer works.'; }
+  catch(e){ status.textContent = e.message; } finally{ btn.disabled = false; }
+}
+
+async function api(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  opts.headers['X-App-Base'] = new URL('.', location.href).href;
+  if(authToken) opts.headers['Authorization'] = `Bearer ${authToken}`;
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if(!res.ok){
+    let msg = `Request failed (${res.status})`;
+    try{ msg = (await res.json()).error || msg; }catch(e){}
+    throw new Error(msg);
+  }
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  try{
+    const result = await api('POST', '/auth/login', {email, password});
+    authToken = result.token;
+    await bootstrap();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function doLogout(){
+  setBranding(null);
+  authToken = null; currentUser = null; myAgency = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+
+async function bootstrap(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loadingScreen').style.display = 'block';
+
+  currentUser = await api('GET', '/auth/me');
+  if(!['agency_admin', 'agency_agent'].includes(currentUser.role)){
+    document.getElementById('loadingNote').textContent =
+      "This account's role (" + currentUser.role.replace('_',' ') + ") isn't an Agency role. Sign in with an Agency Admin or Agent account.";
+    return;
+  }
+  if(!currentUser.agency_id){
+    document.getElementById('loadingNote').textContent = 'This account is not linked to an Agency.';
+    return;
+  }
+
+  const isAdmin = currentUser.role === 'agency_admin';
+  document.getElementById('tabBtnTeam').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('tabBtnUnits').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('tabBtnVehicles').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('createPermitBtn').style.display = 'inline-block';
+  document.getElementById('createOwnerBtn').style.display = isAdmin ? 'inline-block' : 'none';
+  // Agent is restricted to printing permits -- everything else (Manage Team,
+  // Manage Units, Service Vehicles, and creating/editing/cancelling any
+  // permit) is Admin-exclusive. Agent lands directly on Permit Manager,
+  // where the only action available to them is Print.
+  switchTab(isAdmin ? 'team' : 'permits');
+
+  document.getElementById('userLabel').textContent = `${currentUser.name} \u00b7 ${currentUser.role.replace('_',' ')}`;
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  await Promise.all([refreshUnits(), refreshPermits(), ...(isAdmin ? [refreshVehiclePermits()] : [])]);
+  if(units.length){
+    document.getElementById('agencySubtitle').textContent = units[0].instance_name ? 'Agency Team' : '';
+  }
+  const agencyLabel = units.length ? units[0].instance_name : 'your Agency';
+  document.getElementById('footAgency').textContent = `Agency \u00b7 STRPark`;
+  if(isAdmin) await refreshTeam();
+}
+
+function switchTab(tab){
+  const map = {team: 'Team', units: 'Units', permits: 'Permits', vehicles: 'Vehicles'};
+  Object.entries(map).forEach(([key, label]) => {
+    document.getElementById(`tabBtn${label}`).classList.toggle('active', key === tab);
+    document.getElementById(`panel${label}`).classList.toggle('active', key === tab);
+  });
+}
+
+// ---------- Manage Team ----------
+
+async function refreshTeam(){
+  team = await api('GET', `/agencies/${currentUser.agency_id}/team`);
+  const body = document.getElementById('teamBody');
+  if(!team.length){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-note">No team members yet.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = team.map(m => {
+    const [first, ...rest] = (m.name || '').split(' ');
+    const last = rest.join(' ');
+    return `
+    <tr>
+      <td>${first || m.name}</td><td>${last}</td><td>${m.phone || '\u2014'}</td><td>${m.email}</td>
+      <td><span class="role-pill">${m.role === 'agency_admin' ? 'Agency-Admin' : 'Agent'}</span></td>
+      <td><button class="edit-btn" onclick="openMemberModal(${m.id})">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openMemberModal(userId){
+  editingMemberId = userId || null;
+  const m = userId ? team.find(x => x.id === userId) : null;
+  document.getElementById('memberModalTitle').textContent = m ? 'Edit Member' : 'Create New Member';
+  document.getElementById('memberModalSub').textContent = '';
+  document.getElementById('memberModalError').style.display = 'none';
+  document.getElementById('memberModalSuccess').style.display = 'none';
+  document.getElementById('memberModalFields').style.display = 'block';
+  document.getElementById('memberSaveBtn').style.display = 'inline-block';
+  if(m){
+    const [first, ...rest] = (m.name || '').split(' ');
+    document.getElementById('memberRole').value = m.role;
+    document.getElementById('memberRole').disabled = true;
+    document.getElementById('memberFirst').value = first || m.name;
+    document.getElementById('memberLast').value = rest.join(' ');
+    document.getElementById('memberEmail').value = m.email;
+    document.getElementById('memberEmail').disabled = true;
+    document.getElementById('memberPhone').value = m.phone || '';
+    document.getElementById('memberDeleteBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('memberRole').value = 'agency_agent';
+    document.getElementById('memberRole').disabled = false;
+    document.getElementById('memberFirst').value = '';
+    document.getElementById('memberLast').value = '';
+    document.getElementById('memberEmail').value = '';
+    document.getElementById('memberEmail').disabled = false;
+    document.getElementById('memberPhone').value = '';
+    document.getElementById('memberDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('memberModalOverlay').classList.add('open');
+}
+
+async function saveMember(){
+  const errEl = document.getElementById('memberModalError');
+  const btn = document.getElementById('memberSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const first = document.getElementById('memberFirst').value.trim();
+  const last = document.getElementById('memberLast').value.trim();
+  try{
+    if(editingMemberId){
+      await api('PUT', `/agencies/${currentUser.agency_id}/team/${editingMemberId}`, {
+        name: `${first} ${last}`.trim(),
+        phone: document.getElementById('memberPhone').value.trim(),
+      });
+      closeModal('memberModalOverlay');
+      await refreshTeam();
+    } else {
+      const result = await api('POST', `/agencies/${currentUser.agency_id}/team`, {
+        role: document.getElementById('memberRole').value,
+        name: `${first} ${last}`.trim(),
+        email: document.getElementById('memberEmail').value.trim(),
+        phone: document.getElementById('memberPhone').value.trim(),
+      });
+      document.getElementById('memberModalFields').style.display = 'none';
+      document.getElementById('memberSaveBtn').style.display = 'none';
+      const successEl = document.getElementById('memberModalSuccess');
+      successEl.innerHTML = inviteHtml('Team member added.', {...result, created_new_account: true}, '');
+      successEl.style.display = 'block';
+      await refreshTeam();
+    }
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteMember(){
+  if(!confirm('Remove this team member? They will lose access to this Agency.')) return;
+  try{
+    await api('DELETE', `/agencies/${currentUser.agency_id}/team/${editingMemberId}`);
+    closeModal('memberModalOverlay');
+    await refreshTeam();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+// ---------- Manage Units ----------
+
+let unitOwnersByUnitId = {};
+
+async function refreshUnits(){
+  units = await api('GET', `/agencies/${currentUser.agency_id}/units`);
+  { const instIds = [...new Set(units.map(u => u.instance_id))]; applyBranding(instIds[0], instIds.length === 1); }
+  // Fetch each Unit's contacts in parallel so the table can show owner
+  // names directly -- there's no batch endpoint for this, but Agency-managed
+  // Unit counts are small enough that per-Unit fetches are fine.
+  const ownerLists = await Promise.all(units.map(u => api('GET', `/units/${u.id}/owners`).catch(() => [])));
+  unitOwnersByUnitId = {};
+  units.forEach((u, i) => { unitOwnersByUnitId[u.id] = ownerLists[i]; });
+  renderUnitsTable();
+}
+
+function renderUnitsTable(){
+  const search = document.getElementById('unitSearch').value.trim().toLowerCase();
+  const filtered = units.filter(u => !search || u.unit_code.toLowerCase().includes(search) || u.address.toLowerCase().includes(search));
+  const body = document.getElementById('unitsBody');
+  if(!filtered.length){
+    body.innerHTML = `<tr><td colspan="8"><div class="empty-note">No managed Units${search ? ' matching your search' : ' yet'}.</div></td></tr>`;
+    return;
+  }
+  let rows = '';
+  filtered.forEach(u => {
+    const owners = unitOwnersByUnitId[u.id] || [];
+    const unitCells = `
+      <td>${u.unit_code}</td><td>${u.instance_name}</td><td>${u.unit_type_name}</td>`;
+    const unitActionsCell = `<td><button class="edit-btn" onclick='openPermitModal(${safeJson(u)})'>Create Permit</button></td>`;
+    if(!owners.length){
+      rows += `<tr>${unitCells}<td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td></td>${unitActionsCell}</tr>`;
+      return;
+    }
+    owners.forEach((o, i) => {
+      rows += '<tr>';
+      if(i === 0) rows += `${unitCells.replace(/<td>/g, `<td rowspan="${owners.length}">`)}`;
+      rows += `
+        <td>${o.first_name} ${o.last_name}</td>
+        <td>${o.email}</td>
+        <td>${o.phone}</td>
+        <td><button class="edit-btn" onclick='openOwnerModal(${safeJson(u)}, ${safeJson(o)})'>Edit</button></td>`;
+      if(i === 0) rows += unitActionsCell.replace('<td>', `<td rowspan="${owners.length}">`);
+      rows += '</tr>';
+    });
+  });
+  body.innerHTML = rows;
+}
+
+async function getPermitTypesForInstance(companyId, instanceId){
+  if(!permitTypes[instanceId]){
+    permitTypes[instanceId] = await api('GET', `/companies/${companyId}/permit-types?instance_id=${instanceId}`);
+  }
+  return permitTypes[instanceId];
+}
+
+// ---------- Permit Modal (per-Unit, "Send Invitation" style) ----------
+
+async function openPermitModal(unit, existingPermit){
+  if(!unit && !existingPermit && !units.length){
+    alert("No managed Units yet -- a permit needs a Unit to be associated with.");
+    return;
+  }
+  editingPermitId = existingPermit ? existingPermit.id : null;
+  permitModalUnit = unit || null;
+  document.getElementById('permitModalTitle').textContent = existingPermit ? 'Edit Permit' : 'Create New Permit';
+  document.getElementById('permitModalSub').textContent = unit ? `Unit: ${unit.unit_code}` : '';
+  document.getElementById('permitModalError').style.display = 'none';
+  document.getElementById('permitModalSuccess').style.display = 'none';
+  document.getElementById('permitModalFields').style.display = 'block';
+  document.getElementById('permitSaveBtn').style.display = 'inline-block';
+  document.getElementById('permitSaveBtn').textContent = existingPermit ? 'Save Changes' : 'Send Invitation';
+
+  const unitField = document.getElementById('permitUnitField');
+  const unitSel = document.getElementById('permitUnit');
+  if(unit){
+    // Launched from a specific Unit's row -- no picker needed.
+    unitField.style.display = 'none';
+  } else {
+    // Launched generally (Permit Manager, or editing a permit whose Unit
+    // isn't already known here) -- show a picker over every managed Unit.
+    unitField.style.display = 'flex';
+    unitSel.disabled = !!existingPermit;
+    unitSel.innerHTML = units.map(u => `<option value="${u.id}" data-company="${u.company_id}" data-instance="${u.instance_id}" data-code="${u.unit_code}">${u.unit_code} \u2014 ${u.instance_name}</option>`).join('');
+    if(existingPermit) unitSel.value = existingPermit.unit_id;
+  }
+
+  await loadPermitTypesForCurrentUnit(existingPermit ? existingPermit.permit_type_id : null);
+
+  document.getElementById('permitFirst').value = existingPermit ? (existingPermit.name || '').split(' ')[0] || '' : '';
+  document.getElementById('permitLast').value = existingPermit ? (existingPermit.name || '').split(' ').slice(1).join(' ') : '';
+  document.getElementById('permitPlate').value = existingPermit ? (existingPermit.plate || '') : '';
+  document.getElementById('permitEmail').value = existingPermit ? existingPermit.email : '';
+  document.getElementById('permitStart').value = existingPermit ? existingPermit.start_date : localDateISO();
+  document.getElementById('permitEnd').value = existingPermit ? (existingPermit.end_date || '') : '';
+  document.getElementById('permitType').disabled = !!existingPermit;  // Pass Type can't change once created.
+  onPermitTypeChange();
+  document.getElementById('permitModalOverlay').classList.add('open');
+}
+
+async function loadPermitTypesForCurrentUnit(selectedTypeId){
+  const companyId = permitModalUnit ? permitModalUnit.company_id : document.getElementById('permitUnit').selectedOptions[0]?.dataset.company;
+  const instanceId = permitModalUnit ? permitModalUnit.instance_id : document.getElementById('permitUnit').selectedOptions[0]?.dataset.instance;
+  if(!companyId || !instanceId) return;
+  let types;
+  try{
+    types = await getPermitTypesForInstance(companyId, instanceId);
+  }catch(e){
+    alert(`Couldn't load permit types: ${e.message}`);
+    return;
+  }
+  // Agents/Admins create resident-facing permits here -- Owner, Guest, Long
+  // Term Renter -- not the internal Housekeeping/Maintenance types, which
+  // live under Create Service Permit instead. Agent is further restricted
+  // to Guest specifically -- matches the backend's is_guest_type check.
+  let relevantTypes = types.filter(t => ['Owner', 'Guest', 'Long Term Renter'].includes(t.name));
+  if(currentUser.role === 'agency_agent') relevantTypes = relevantTypes.filter(t => t.name === 'Guest');
+  const typeSel = document.getElementById('permitType');
+  typeSel.innerHTML = (relevantTypes.length ? relevantTypes : types).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  if(selectedTypeId) typeSel.value = selectedTypeId;
+}
+document.addEventListener('change', e => { if(e.target && e.target.id === 'permitUnit') loadPermitTypesForCurrentUnit(); });
+
+function onPermitTypeChange(){
+  const typeName = document.getElementById('permitType').selectedOptions[0]?.textContent;
+  document.getElementById('permitEndField').style.display = typeName === 'Owner' ? 'none' : 'flex';
+}
+
+async function savePermit(){
+  const errEl = document.getElementById('permitModalError');
+  const btn = document.getElementById('permitSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const typeName = document.getElementById('permitType').selectedOptions[0]?.textContent;
+  const first = document.getElementById('permitFirst').value.trim();
+  const last = document.getElementById('permitLast').value.trim();
+  const targetUnitId = permitModalUnit ? permitModalUnit.id : parseInt(document.getElementById('permitUnit').value, 10);
+  const payload = {
+    permit_type_id: parseInt(document.getElementById('permitType').value, 10),
+    name: `${first} ${last}`.trim() || undefined,
+    email: document.getElementById('permitEmail').value.trim(),
+    plate: document.getElementById('permitPlate').value.trim() || undefined,
+    start_date: document.getElementById('permitStart').value,
+  };
+  if(typeName !== 'Owner') payload.end_date = document.getElementById('permitEnd').value;
+  try{
+    if(editingPermitId){
+      await api('PUT', `/permits/${editingPermitId}`, payload);
+      closeModal('permitModalOverlay');
+      await refreshPermits();
+    } else {
+      const result = await api('POST', `/units/${targetUnitId}/permits`, payload);
+      if(result.plate && result.status === 'Awaiting Payment'){
+        // The guest must pay before the permit can be printed.
+        document.getElementById('permitModalFields').style.display = 'none';
+        document.getElementById('permitSaveBtn').style.display = 'none';
+        const successEl = document.getElementById('permitModalSuccess');
+        successEl.textContent = `Permit created. The guest has been emailed a link to pay ${money(result.payment_total_cents)}; you can print it once they've paid.`;
+        successEl.style.display = 'block';
+        await refreshPermits();
+      } else if(result.plate){
+        // The Agency already knows the plate -- no reason to make them wait
+        // on the Guest email flow just to get a printable permit.
+        document.getElementById('permitModalFields').style.display = 'none';
+        document.getElementById('permitSaveBtn').style.display = 'none';
+        const successEl = document.getElementById('permitModalSuccess');
+        successEl.innerHTML = `Permit created. <a href="#" onclick="printPermit(${result.id});return false;" style="color:inherit;font-weight:700;">Print the permit &rarr;</a>`;
+        successEl.style.display = 'block';
+        await refreshPermits();
+      } else {
+        closeModal('permitModalOverlay');
+        await refreshPermits();
+      }
+    }
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// ---------- Create Owner Modal ----------
+
+let editingOwnerId = null;
+let editingOwnerUnit = null;
+
+function openOwnerModal(unit, existingOwner){
+  if(!unit && !existingOwner && !units.length){
+    alert("No managed Units yet -- a contact needs a Unit to be added to.");
+    return;
+  }
+  editingOwnerId = existingOwner ? existingOwner.id : null;
+  editingOwnerUnit = unit || null;
+  document.getElementById('ownerModalTitle').textContent = existingOwner ? 'Edit Owner' : 'Create Owner';
+  document.getElementById('ownerModalSub').textContent = unit ? `Unit: ${unit.unit_code}` : "Add a contact to one of your managed Units";
+  document.getElementById('ownerModalError').style.display = 'none';
+
+  const unitSel = document.getElementById('ownerUnit');
+  if(unit){
+    unitSel.innerHTML = `<option value="${unit.id}">${unit.unit_code} \u2014 ${unit.instance_name}</option>`;
+    unitSel.disabled = true;
+  } else {
+    unitSel.innerHTML = units.map(u => `<option value="${u.id}">${u.unit_code} \u2014 ${u.instance_name}</option>`).join('');
+    unitSel.disabled = false;
+  }
+
+  document.getElementById('ownerFirst').value = existingOwner ? existingOwner.first_name : '';
+  document.getElementById('ownerLast').value = existingOwner ? existingOwner.last_name : '';
+  document.getElementById('ownerEmail').value = existingOwner ? existingOwner.email : '';
+  document.getElementById('ownerPhone').value = existingOwner ? existingOwner.phone : '';
+  document.getElementById('ownerPermProfiles').value = existingOwner ? existingOwner.perm_manage_profiles : 'Full Access';
+  document.getElementById('ownerPermPermits').value = existingOwner ? existingOwner.perm_create_permits : 'Full Access';
+  document.getElementById('ownerPermTrust').value = existingOwner ? existingOwner.perm_manage_trust_agency : 'Full Access';
+  document.getElementById('ownerDeleteBtn').style.display = existingOwner ? 'inline-block' : 'none';
+  document.getElementById('ownerModalOverlay').classList.add('open');
+}
+
+async function saveOwner(){
+  const errEl = document.getElementById('ownerModalError');
+  const btn = document.getElementById('ownerSaveBtn');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  const unitId = parseInt(document.getElementById('ownerUnit').value, 10);
+  const payload = {
+    first_name: document.getElementById('ownerFirst').value.trim(),
+    last_name: document.getElementById('ownerLast').value.trim(),
+    email: document.getElementById('ownerEmail').value.trim(),
+    phone: document.getElementById('ownerPhone').value.trim(),
+    perm_manage_profiles: document.getElementById('ownerPermProfiles').value,
+    perm_create_permits: document.getElementById('ownerPermPermits').value,
+    perm_manage_trust_agency: document.getElementById('ownerPermTrust').value,
+  };
+  try{
+    if(editingOwnerId) await api('PUT', `/owners/${editingOwnerId}`, payload);
+    else await api('POST', `/units/${unitId}/owners`, payload);
+    closeModal('ownerModalOverlay');
+    await refreshUnits();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteOwner(){
+  if(!confirm('Remove this contact from the Unit?')) return;
+  try{
+    await api('DELETE', `/owners/${editingOwnerId}`);
+    closeModal('ownerModalOverlay');
+    await refreshUnits();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+// ---------- Permit Manager ----------
+
+const STATUS_FILTERS = ['Active', 'Pending', 'Awaiting Payment', 'Future', 'Expired', 'Cancelled'];
+
+function renderStatusPills(){
+  document.getElementById('statusFilterPills').innerHTML = STATUS_FILTERS.map(s => `
+    <button class="filter-pill ${s === permitStatusFilter ? 'active' : ''}" onclick="setStatusFilter('${s}')">${s}</button>
+  `).join('');
+}
+
+function setStatusFilter(status){
+  permitStatusFilter = status;
+  renderStatusPills();
+  renderPermitsTable();
+}
+
+async function refreshPermits(){
+  permits = await api('GET', `/agencies/${currentUser.agency_id}/permits`);
+  renderStatusPills();
+  renderPermitsTable();
+}
+
+function renderPermitsTable(){
+  document.getElementById('permitsListTitle').textContent = `Permits \u2014 ${permitStatusFilter}`;
+  const search = document.getElementById('permitSearch').value.trim().toLowerCase();
+  const filtered = permits.filter(p => {
+    if(p.status !== permitStatusFilter) return false;
+    if(!search) return true;
+    return (p.name || '').toLowerCase().includes(search) ||
+           (p.plate || '').toLowerCase().includes(search) ||
+           (p.email || '').toLowerCase().includes(search) ||
+           (p.unit_code || '').toLowerCase().includes(search);
+  });
+  const body = document.getElementById('permitsBody');
+  if(!filtered.length){
+    body.innerHTML = `<tr><td colspan="10"><div class="empty-note">No ${permitStatusFilter.toLowerCase()} permits${search ? ' matching your search' : ''}.</div></td></tr>`;
+    return;
+  }
+  const canManage = (p) => (p.status === 'Pending' || p.status === 'Awaiting Payment' || p.status === 'Future' || p.status === 'Active') &&
+    (currentUser.role !== 'agency_agent' || p.permit_type_name === 'Guest');
+  body.innerHTML = filtered.map(p => `
+    <tr>
+      <td>${p.permit_type_name}</td>
+      <td>${p.plate || '\u2014'}</td>
+      <td>${currentUser.name}</td>
+      <td>${p.name || '\u2014'}</td>
+      <td>${p.email}</td>
+      <td>${p.unit_code}</td>
+      <td>${p.start_date}</td>
+      <td>${p.end_date || '\u2014'}</td>
+      <td><span class="status-pill status-${p.status}">${p.status}</span>${payNote(p)}</td>
+      <td>
+        ${p.plate && p.status !== 'Cancelled' && p.status !== 'Awaiting Payment' ? `<button class="edit-btn" onclick="printPermit(${p.id})">Print</button>` : ''}
+        ${canManage(p) ? `
+        <button class="edit-btn" onclick='openPermitModal(null, ${safeJson(p)})'>Edit</button>
+        <button class="edit-btn" onclick="cancelPermit(${p.id})" style="color:#B23B3B;border-color:#B23B3B;">Cancel</button>
+        ${p.status === 'Pending' || p.status === 'Awaiting Payment' ? `<button class="edit-btn" onclick="resendInvitation(${p.id})">Resend</button>` : ''}
+        ` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+// Payment state under the status: what the guest owes or paid.
+function payNote(p){
+  const n = p.fee_basis === 'daily' && p.fee_nights ? ` (${p.fee_nights} night${p.fee_nights === 1 ? '' : 's'})` : '';
+  if(p.payment_status === 'awaiting') return `<span class="pay-note">Guest owes ${money(p.payment_total_cents)}${n}</span>`;
+  if(p.payment_status === 'paid') return `<span class="pay-note">Paid ${money(p.payment_total_cents)}${n}</span>`;
+  if(p.payment_status === 'awaiting') return `<span class="pay-note">Guest owes ${money(p.payment_total_cents)}</span>`;
+  if(p.payment_status === 'paid') return `<span class="pay-note">Paid ${money(p.payment_total_cents)}</span>`;
+  if(p.payment_status === 'refunded') return `<span class="pay-note">Refunded ${money(p.payment_total_cents)}</span>`;
+  return '';
+}
+
+async function printPermit(permitId){
+  // Printing needs the Owner's or Agency's login, so fetch the PDF with the
+  // token and open it. The window is opened first so pop-up blockers allow it.
+  const win = window.open('', '_blank');
+  try{
+    const res = await fetch(`${API_BASE}/permits/${permitId}/pdf`, {headers: {'Authorization': `Bearer ${authToken}`}});
+    if(!res.ok){
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Could not load the permit PDF (${res.status})`);
+    }
+    const url = URL.createObjectURL(await res.blob());
+    if(win) win.location.href = url; else window.open(url, '_blank');
+  }catch(e){
+    if(win) win.close();
+    alert(e.message);
+  }
+}
+
+// A paid permit cancelled before its start date is refunded in full; after that, no refund.
+function cancelConfirmText(p){
+  if(p && p.refund_eligible)
+    return `Cancel this permit? The guest paid ${money(p.payment_total_cents)} and will be refunded in full. This cannot be undone.`;
+  if(p && p.payment_status === 'paid')
+    return "Cancel this permit? The visit has already started, so the guest's payment will NOT be refunded. This cannot be undone.";
+  return 'Cancel this permit? This cannot be undone.';
+}
+const money = c => '$' + ((c || 0) / 100).toFixed(2);
+
+async function cancelPermit(permitId){
+  const p = permits.find(x => x.id === permitId);
+  if(!confirm(cancelConfirmText(p))) return;
+  try{
+    const result = await api('POST', `/permits/${permitId}/cancel`);
+    if(result.payment_status === 'refunded') alert(`Permit cancelled. ${money(result.payment_total_cents)} was refunded to the guest.`);
+    await refreshPermits();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+async function resendInvitation(permitId){
+  try{
+    await api('POST', `/permits/${permitId}/resend-invitation`);
+    alert('Invitation resent.');
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+// ---------- Service Vehicle Permits (Agency-wide, no Unit/plate/email at all) ----------
+
+let vehiclePermits = [];
+let agencyMaxVehiclePermits = 0;
+
+function vehiclePermitStatus(vp){
+  if(vp.cancelled) return 'Cancelled';
+  const today = localDateISO();
+  if(vp.end_date < today) return 'Expired';
+  return 'Active';
+}
+
+async function refreshVehiclePermits(){
+  const [agency, permits] = await Promise.all([
+    api('GET', `/agencies/${currentUser.agency_id}`),
+    api('GET', `/agencies/${currentUser.agency_id}/vehicle-permits`),
+  ]);
+  agencyMaxVehiclePermits = agency.max_service_vehicle_permits;
+  vehiclePermits = permits;
+  renderVehiclePermits();
+}
+
+function renderVehiclePermits(){
+  const activeCount = vehiclePermits.filter(vp => !vp.cancelled).length;
+  document.getElementById('vehiclePermitLimitNote').textContent =
+    `${activeCount} of ${agencyMaxVehiclePermits} Service Vehicle permit${agencyMaxVehiclePermits === 1 ? '' : 's'} in use.`;
+  document.getElementById('createVehiclePermitBtn').disabled = activeCount >= agencyMaxVehiclePermits;
+
+  const body = document.getElementById('vehiclePermitsBody');
+  if(!vehiclePermits.length){
+    body.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--gray-mid);padding:20px;">No Service Vehicle permits yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = vehiclePermits.map(vp => {
+    const status = vehiclePermitStatus(vp);
+    const startYear = vp.start_date.slice(0, 4);
+    const endYear = vp.end_date.slice(0, 4);
+    // Service Vehicle permits can only ever be printed once -- a
+    // replacement means cancelling and creating a new one, not reprinting.
+    // A cancelled permit that was never printed has no action left at all.
+    let printAction;
+    if(vp.print_count > 0){
+      printAction = `<span style="color:var(--gray-mid);font-size:12px;">Printed</span>`;
+    } else if(vp.cancelled){
+      printAction = `<span style="color:var(--gray-mid);font-size:12px;">&mdash;</span>`;
+    } else {
+      printAction = `<button class="edit-btn" onclick="openVehiclePermitPdf(${vp.id})">Print</button>`;
+    }
+    return `
+    <tr>
+      <td>${startYear} / ${endYear}</td>
+      <td><span class="status-pill status-${status}">${status}</span></td>
+      <td class="row-actions">
+        ${printAction}
+        ${vp.cancelled ? '' : `<button class="edit-btn" style="color:#B23B3B;" onclick="cancelVehiclePermit(${vp.id})">Cancel</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function openVehiclePermitPdf(vpId){
+  // The PDF endpoint requires auth (unlike the Guest permit PDF, which is
+  // public) -- a plain link wouldn't carry the bearer token, so fetch it
+  // properly and open the resulting blob instead.
+  try{
+    const res = await fetch(`${API_BASE}/agencies/${currentUser.agency_id}/vehicle-permits/${vpId}/pdf`, {
+      headers: {'Authorization': `Bearer ${authToken}`},
+    });
+    if(!res.ok){
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Could not load the permit PDF (${res.status})`);
+    }
+    const blob = await res.blob();
+    window.open(URL.createObjectURL(blob), '_blank');
+    // A permit can only be printed once -- refresh so the row immediately
+    // flips from "Print" to "Printed" rather than looking clickable still.
+    await refreshVehiclePermits();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+async function createVehiclePermit(){
+  const errEl = document.getElementById('vehiclePermitError');
+  errEl.style.display = 'none';
+  try{
+    await api('POST', `/agencies/${currentUser.agency_id}/vehicle-permits`);
+    await refreshVehiclePermits();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function cancelVehiclePermit(vpId){
+  if(!confirm('Cancel this Service Vehicle permit?')) return;
+  try{
+    await api('DELETE', `/agencies/${currentUser.agency_id}/vehicle-permits/${vpId}`);
+    await refreshVehiclePermits();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+function closeModal(overlayId){ document.getElementById(overlayId).classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  [...document.querySelectorAll('.modal-overlay')].forEach(ov=>{
+    ov.addEventListener('click', e=>{ if(e.target === ov) closeModal(ov.id); });
+  });
+});
+
+// ---------- Branding: Instance logo (top-left) + Company footer ----------
+// Read from the public branding lookup, so it works with or without a login.
+const _brandCache = {};
+async function applyBranding(instanceId, showLogo = true){
+  try{
+    if(!instanceId){ setBranding(null); return; }
+    if(!_brandCache[instanceId]){
+      const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+      if(!r.ok) return;
+      _brandCache[instanceId] = await r.json();
+    }
+    setBranding(_brandCache[instanceId], showLogo);
+  }catch(e){ /* cosmetic only */ }
+}
+function setBranding(b, showLogo = true){
+  const logo = b && showLogo ? b.logo_data_url : null;
+  document.querySelectorAll('.brand-header-logo').forEach(img => {
+    img.style.display = logo ? 'block' : 'none';
+    if(logo) img.src = logo;
+  });
+  const footLogo = b ? b.footer_logo_data_url : null, footText = b ? b.footer_text : null;
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = footLogo ? 'block' : 'none';
+  if(footLogo) fl.src = footLogo;
+  document.getElementById('brandFooterText').textContent = footText || '';
+  document.getElementById('brandFooter').style.display = (footLogo || footText) ? 'flex' : 'none';
+}
+</script>
+</body>
+</html>

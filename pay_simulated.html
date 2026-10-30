@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment (Simulated) — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --sim:#7A5A00; --sim-bg:#FFF4CC;
+    --ok:#2F7A4F; --ok-bg:#E4F3E8; --bad:#B23B3B; --bad-bg:#FAE6E6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:480px;margin:0 auto;padding:28px 16px 60px;}
+  .sim-banner{background:var(--sim-bg);color:var(--sim);border:1px dashed var(--sim);border-radius:8px;padding:10px 14px;font-size:12.5px;font-weight:700;text-align:center;letter-spacing:.02em;margin-bottom:18px;}
+  .card{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:26px;}
+  .card h1{margin:0 0 2px;font-size:20px;font-weight:800;}
+  .payee{font-size:13px;color:var(--gray-mid);margin-bottom:18px;}
+  .desc{font-size:13.5px;line-height:1.5;margin-bottom:18px;}
+  .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-line);font-size:14px;}
+  .row .label{color:var(--gray-mid);}
+  .row.total{border-bottom:none;font-weight:800;font-size:17px;padding-top:12px;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .fake-card{margin:18px 0 6px;background:#F7F6F3;border:1px solid var(--gray-line);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--gray-mid);}
+  .btn{width:100%;border:none;padding:13px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer;margin-top:12px;}
+  .btn-pay{background:var(--coral);color:#fff;}
+  .btn-pay:hover{background:var(--coral-dark);}
+  .btn-decline{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);}
+  .btn-decline:hover{border-color:var(--bad);color:var(--bad);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .msg{border-radius:6px;padding:12px 14px;font-size:13.5px;font-weight:600;margin-top:16px;display:none;line-height:1.5;}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);}
+  .msg.bad{background:var(--bad-bg);color:var(--bad);}
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin:0 auto 16px;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+  .note{font-size:12px;color:var(--gray-mid);margin-top:14px;line-height:1.5;text-align:center;}
+
+  /* ---- Phones ---- */
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 40px;}
+    input, select, textarea{font-size:16px !important;}   /* 16px stops iPhone zooming in on tap */
+    .lookup-box, .permit-card, .citation-card{padding:20px 16px;}
+    .primary-btn, .secondary-btn, .danger-btn{padding:15px 16px;font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="brand-header-logo" alt="Logo">
+  <div class="sim-banner">SIMULATED PAYMENT &middot; No real card is charged and no money moves</div>
+  <div class="card">
+    <div id="loading">Loading payment&hellip;</div>
+    <div id="content" style="display:none;">
+      <h1 id="title">Payment</h1>
+      <div class="payee">Paid to <b id="payeeName">&mdash;</b></div>
+      <div class="desc" id="description"></div>
+      <div class="row"><span class="label" id="baseLabel">Amount</span><span class="mono" id="baseAmt"></span></div>
+      <div class="row" id="feeRow"><span class="label">Card processing fee</span><span class="mono" id="feeAmt"></span></div>
+      <div class="row total"><span>Total</span><span class="mono" id="totalAmt"></span></div>
+      <div id="actions">
+        <div class="fake-card">Test card &nbsp;<span class="mono">4242 4242 4242 4242</span> &nbsp;&middot;&nbsp; 12/34 &nbsp;&middot;&nbsp; 123</div>
+        <button class="btn btn-pay" id="payBtn" onclick="complete('pay')">Pay</button>
+        <button class="btn btn-decline" id="declineBtn" onclick="complete('decline')">Decline card (test a failed payment)</button>
+      </div>
+      <div class="msg" id="msg"></div>
+      <div class="note" id="returnNote" style="display:none;">Taking you back&hellip;</div>
+    </div>
+  </div>
+  <p class="note">When STRPark switches to real payments, this page is replaced by Stripe's secure checkout.</p>
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+const token = new URLSearchParams(location.search).get('session');
+let session = null;
+
+const money = c => '$' + (c / 100).toFixed(2);
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function apiCall(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
+  return json;
+}
+
+function showMsg(text, ok){
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'bad');
+  el.style.display = 'block';
+}
+
+// Only return to a page on the same site as this one.
+function safeReturnUrl(){
+  if(!session || !session.return_url) return null;
+  try{
+    const u = new URL(session.return_url);
+    return u.origin === location.origin ? u : null;
+  }catch(e){ return null; }
+}
+
+function goBack(outcome){
+  const u = safeReturnUrl();
+  if(!u) return;
+  u.searchParams.set('payment', outcome);
+  document.getElementById('returnNote').style.display = 'block';
+  setTimeout(() => { location.href = u.toString(); }, 1200);
+}
+
+async function applyBranding(instanceId){
+  try{
+    if(!instanceId) return;
+    const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+    if(!r.ok) return;
+    const b = await r.json();
+    const logo = document.querySelector('.brand-header-logo');
+    if(b.logo_data_url){ logo.src = b.logo_data_url; logo.style.display = 'block'; }
+    const fl = document.getElementById('brandFooterLogo');
+    if(b.footer_logo_data_url){ fl.src = b.footer_logo_data_url; fl.style.display = 'block'; }
+    document.getElementById('brandFooterText').textContent = b.footer_text || '';
+    document.getElementById('brandFooter').style.display = (b.footer_logo_data_url || b.footer_text) ? 'flex' : 'none';
+  }catch(e){ /* cosmetic only */ }
+}
+
+function render(){
+  const s = session;
+  applyBranding(s.instance_id);
+  const sub = s.kind === 'subscription';
+  document.getElementById('title').textContent = sub ? (s.total_cents ? 'Pay your STRPark subscription' : 'Save your card')
+    : (s.kind === 'citation' ? 'Pay a parking citation' : 'Pay for a parking permit');
+  document.getElementById('payeeName').textContent = s.payee_name;
+  document.getElementById('description').textContent = s.description || '';
+  document.getElementById('baseLabel').textContent = sub ? 'Due today' : (s.kind === 'citation' ? 'Fine' : 'Permit fee');
+  document.getElementById('feeRow').style.display = s.card_fee_cents ? 'flex' : 'none';
+  document.getElementById('baseAmt').textContent = money(s.base_cents);
+  document.getElementById('feeAmt').textContent = money(s.card_fee_cents);
+  document.getElementById('totalAmt').textContent = money(s.total_cents);
+  document.getElementById('payBtn').textContent = s.total_cents ? `Pay ${money(s.total_cents)}` : 'Save card';
+  const pending = s.status === 'pending';
+  document.getElementById('actions').style.display = pending ? 'block' : 'none';
+  if(s.status === 'paid') showMsg(s.total_cents ? `Payment of ${money(s.total_cents)} received. Thank you.` : 'Card saved. Thank you.', true);
+  else if(s.status === 'declined') showMsg('This payment was declined. Go back and start a new payment to try again.', false);
+  else if(s.status === 'refunded') showMsg(`This payment was refunded (${money(s.total_cents)}).`, true);
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+}
+
+async function load(){
+  if(!token){ document.getElementById('loading').textContent = 'No payment was specified.'; return; }
+  try{
+    session = await apiCall('GET', `/payments/sessions/${encodeURIComponent(token)}`);
+    render();
+  }catch(e){
+    document.getElementById('loading').textContent = e.message;
+  }
+}
+
+async function complete(outcome){
+  document.getElementById('payBtn').disabled = true;
+  document.getElementById('declineBtn').disabled = true;
+  try{
+    session = await apiCall('POST', `/payments/sessions/${encodeURIComponent(token)}/complete`, {outcome});
+    render();
+    goBack(outcome === 'pay' ? 'success' : 'declined');
+  }catch(e){
+    showMsg(e.message, false);
+    document.getElementById('actions').style.display = 'none';
+  }
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citation Lookup — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --status-active:#B4791F; --status-active-bg:#FBEFDD;
+    --status-disputed:#2F6FA7; --status-disputed-bg:#E5EEF6;
+    --status-paid:#2F7A4F; --status-paid-bg:#E4F3E8;
+    --status-inactive:#8A8A8A; --status-inactive-bg:#EDEDED;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:560px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:24px;}
+  .masthead h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .masthead p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+
+  .lookup-box{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:28px;}
+  .lookup-box p{font-size:13px;color:var(--gray-mid);margin:0 0 20px;line-height:1.5;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field input{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--gray-line);border-radius:6px;}
+  .modal-field input#lookupPlate{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.05em;}
+  .modal-error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:16px;display:none;}
+  .modal-success-inline{background:var(--status-paid-bg);color:var(--status-paid);border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:16px;display:none;}
+  .primary-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:12px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+  .primary-btn:hover{background:var(--coral-dark);}
+  .primary-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .secondary-btn{width:100%;background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:12px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;margin-top:10px;}
+  .secondary-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+  .danger-btn{width:100%;background:#fff;border:1px solid #B23B3B;color:#B23B3B;padding:12px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;margin-top:10px;}
+  .danger-btn:hover{background:#FAE6E6;}
+
+  .citation-card{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:24px;margin-bottom:16px;}
+  .citation-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+  .citation-head h2{margin:0;font-size:17px;font-weight:800;}
+  .citation-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .status-pill{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;}
+  .status-Active{background:var(--status-active-bg);color:var(--status-active);}
+  .status-Disputed{background:var(--status-disputed-bg);color:var(--status-disputed);}
+  .status-Paid{background:var(--status-paid-bg);color:var(--status-paid);}
+  .status-Dismissed,.status-Void{background:var(--status-inactive-bg);color:var(--status-inactive);}
+  .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gray-line);font-size:13.5px;}
+  .detail-row:last-child{border-bottom:none;}
+  .detail-row .label{color:var(--gray-mid);}
+  .fine-amount{font-size:28px;font-weight:800;margin:16px 0 4px;}
+
+  .thread{margin-top:16px;}
+  .thread h3{font-size:13px;font-weight:800;margin:0 0 10px;}
+  .message{padding:12px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.5;}
+  .message.appellant{background:var(--coral-tint);}
+  .message.staff{background:#EDEDED;}
+  .message .meta{font-size:10.5px;color:var(--gray-mid);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+
+  .modal-field textarea{font-family:inherit;font-size:13.5px;padding:10px 12px;border:1px solid var(--gray-line);border-radius:6px;resize:vertical;min-height:80px;}
+  .back-link{display:inline-block;margin-bottom:16px;font-size:12.5px;color:var(--gray-mid);cursor:pointer;text-decoration:none;}
+  .back-link:hover{color:var(--coral-dark);}
+  #app, #disputeForm, #payConfirm{display:none;}
+
+  /* Branding: Instance logo (top-left) and Company footer */
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+
+  /* ---- Phones ---- */
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 40px;}
+    input, select, textarea{font-size:16px !important;}   /* 16px stops iPhone zooming in on tap */
+    .lookup-box, .permit-card, .citation-card{padding:20px 16px;}
+    .primary-btn, .secondary-btn, .danger-btn{padding:15px 16px;font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead"><div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div>
+    <h1>Citation Lookup</h1>
+    <p>Pay or Dispute a Parking Citation</p>
+  </div></div></div>
+
+  <div id="lookupScreen">
+    <div class="lookup-box">
+      <p>Enter the Citation Number and License Plate from your citation slip to view details, pay online, or file a dispute.</p>
+      <div class="modal-error" id="lookupError"></div>
+      <div class="modal-field"><label for="lookupId">Citation Number</label><input type="text" id="lookupId" placeholder="e.g. 42" inputmode="numeric"></div>
+      <div class="modal-field"><label for="lookupPlate">License Plate</label><input type="text" id="lookupPlate" placeholder="e.g. ABC123"></div>
+      <button class="primary-btn" id="lookupBtn" onclick="doLookup()">Look Up Citation</button>
+    </div>
+  </div>
+
+  <div id="app">
+    <a class="back-link" onclick="showLookup()">&larr; Look up a different citation</a>
+    <div class="citation-card">
+      <div class="citation-head">
+        <div>
+          <h2 id="citationType">&mdash;</h2>
+          <div class="sub" id="citationSub">&mdash;</div>
+        </div>
+        <span class="status-pill" id="citationStatusPill"></span>
+      </div>
+      <div class="fine-amount" id="citationFine">&mdash;</div>
+      <div class="detail-row"><span class="label">Plate</span><span id="citationPlate">&mdash;</span></div>
+      <div class="detail-row"><span class="label">Issued</span><span id="citationIssued">&mdash;</span></div>
+      <div class="detail-row" id="notesRow" style="display:none;"><span class="label">Notes</span><span id="citationNotes">&mdash;</span></div>
+      <div class="detail-row" id="resolutionRow" style="display:none;"><span class="label">Resolution</span><span id="citationResolution">&mdash;</span></div>
+      <div id="photosSection" style="display:none;margin-top:14px;">
+        <div class="label" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;margin-bottom:8px;">Photos</div>
+        <div id="photosGrid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+
+    <div class="modal-success-inline" id="paymentNotice" style="margin-top:16px;"></div>
+    <div class="modal-error" id="paymentProblem" style="margin-top:16px;"></div>
+
+    <div id="activeActions">
+      <div class="modal-error" id="actionError"></div>
+      <p id="payNote" style="font-size:12.5px;color:var(--gray-mid);margin:0 0 12px;line-height:1.5;display:none;"></p>
+      <button class="primary-btn" onclick="showPayConfirm()" id="payActionBtn">Pay Citation</button>
+      <button class="danger-btn" onclick="showDisputeForm()">Dispute This Citation</button>
+    </div>
+
+    <div id="payConfirm">
+      <div class="citation-card">
+        <div id="payBreakdown" style="font-size:13.5px;margin:0 0 16px;"></div>
+        <p style="margin:0 0 16px;font-size:12.5px;color:var(--gray-mid);">You'll go to a payment page to pay by card, then come back here.</p>
+        <div class="modal-field"><label for="payEmail">Email (for your receipt)</label><input type="email" id="payEmail"></div>
+        <div class="modal-error" id="payError"></div>
+        <button class="primary-btn" onclick="submitPay()" id="payBtn">Continue to Payment</button>
+        <button class="secondary-btn" onclick="hidePayConfirm()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="disputeForm">
+      <div class="citation-card">
+        <div class="modal-field"><label for="disputeEmail">Your Email</label><input type="email" id="disputeEmail"></div>
+        <div class="modal-field"><label for="disputeReason">Reason for Dispute</label><textarea id="disputeReason" placeholder="Explain why you believe this citation was issued in error..."></textarea></div>
+        <div class="modal-error" id="disputeError"></div>
+        <button class="primary-btn" onclick="submitDispute()" id="disputeBtn">Submit Dispute</button>
+        <button class="secondary-btn" onclick="hideDisputeForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="thread" id="threadSection" style="display:none;">
+      <h3>Dispute Discussion</h3>
+      <div id="messagesList"></div>
+      <div class="modal-field"><textarea id="newMessage" placeholder="Add a message..." oninput="document.getElementById('messageSuccess').style.display='none';"></textarea></div>
+      <div class="modal-error" id="messageError"></div>
+      <div class="modal-success-inline" id="messageSuccess">&#10003; Message sent</div>
+      <button class="primary-btn" onclick="submitMessage()" id="messageBtn">Send Message</button>
+    </div>
+  </div>
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<div id="photoLightboxOverlay" style="display:none;position:fixed;inset:0;background:rgba(43,43,43,.75);z-index:200;align-items:center;justify-content:center;cursor:zoom-out;" onclick="closePhotoLightbox()">
+  <img id="photoLightboxImg" style="max-width:90vw;max-height:90vh;border-radius:8px;">
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+let currentCitation = null;
+let currentPlate = null;
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function apiCall(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
+  return json;
+}
+
+function showLookup(){
+  document.getElementById('lookupScreen').style.display = 'block';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('lookupError').style.display = 'none';
+}
+
+async function doLookup(){
+  const errEl = document.getElementById('lookupError');
+  const btn = document.getElementById('lookupBtn');
+  errEl.style.display = 'none';
+  const citationId = document.getElementById('lookupId').value.trim();
+  const plate = document.getElementById('lookupPlate').value.trim();
+  if(!citationId || !plate){
+    errEl.textContent = 'Both the Citation Number and License Plate are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  try{
+    const result = await apiCall('GET', `/citations/public-lookup?citation_id=${encodeURIComponent(citationId)}&plate=${encodeURIComponent(plate)}`);
+    currentCitation = result;
+    currentPlate = plate;
+    document.getElementById('messageSuccess').style.display = 'none';
+    renderCitation();
+    document.getElementById('lookupScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function renderCitation(){
+  const c = currentCitation;
+  applyBranding(c.instance_id);
+  document.getElementById('citationType').textContent = c.citation_type_name;
+  document.getElementById('citationSub').textContent = `Citation #${c.id}`;
+  document.getElementById('citationStatusPill').textContent = c.status;
+  document.getElementById('citationStatusPill').className = `status-pill status-${c.status}`;
+  document.getElementById('citationFine').textContent = `$${c.fine_amount}`;
+  const money = cents => '$' + (cents / 100).toFixed(2);
+  document.getElementById('payActionBtn').textContent = `Pay ${money(c.payment_total_cents || 0)}`;
+  document.getElementById('payBreakdown').innerHTML = `
+    <div class="detail-row"><span class="label">Fine</span><span>${money(c.payment_total_cents - c.card_fee_cents)}</span></div>
+    <div class="detail-row"><span class="label">Card processing fee</span><span>${money(c.card_fee_cents || 0)}</span></div>
+    <div class="detail-row" style="font-weight:800;"><span>Total</span><span>${money(c.payment_total_cents || 0)}</span></div>`;
+  document.getElementById('citationPlate').textContent = c.plate;
+  document.getElementById('citationIssued').textContent = c.issued_at;
+
+  const notesRow = document.getElementById('notesRow');
+  if(c.notes){ notesRow.style.display = 'flex'; document.getElementById('citationNotes').textContent = c.notes; }
+  else notesRow.style.display = 'none';
+
+  const resRow = document.getElementById('resolutionRow');
+  if(c.resolution_notes){ resRow.style.display = 'flex'; document.getElementById('citationResolution').textContent = c.resolution_notes; }
+  else resRow.style.display = 'none';
+
+  const photosSection = document.getElementById('photosSection');
+  if(c.photo_urls && c.photo_urls.length){
+    photosSection.style.display = 'block';
+    document.getElementById('photosGrid').innerHTML = c.photo_urls.map(url => `
+      <img src="${url}" onclick="openPhotoLightbox('${url}')" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-line);cursor:zoom-in;">
+    `).join('');
+  } else {
+    photosSection.style.display = 'none';
+  }
+
+  // A Paid citation can still be appealed; if the appeal is approved the payment is refunded.
+  document.getElementById('activeActions').style.display = (c.status === 'Active' || c.status === 'Paid') ? 'block' : 'none';
+  const canPayOnline = c.status === 'Active' && c.fine_amount > 0 && c.online_payment_available;
+  document.getElementById('payActionBtn').style.display = canPayOnline ? 'block' : 'none';
+  const payNote = document.getElementById('payNote');
+  if(c.status === 'Paid'){
+    payNote.textContent = "This citation has been paid. You can still dispute it: if your appeal is approved, you'll be refunded in full.";
+    payNote.style.display = 'block';
+  } else if(c.status === 'Active' && c.fine_amount > 0 && !c.online_payment_available){
+    payNote.textContent = "Online payment isn't available for this citation yet. Please contact the Enforcement company to pay, or dispute it below.";
+    payNote.style.display = 'block';
+  } else {
+    payNote.style.display = 'none';
+  }
+  const refundMsg = (c.messages || []).find(m => (m.message || '').startsWith('Refunded '));
+  if(c.status === 'Dismissed' && refundMsg){
+    resRow.style.display = 'flex';
+    document.getElementById('citationResolution').textContent = (c.resolution_notes ? c.resolution_notes + ' ' : '') + refundMsg.message;
+  }
+  hidePayConfirm();
+  hideDisputeForm();
+
+  const threadSection = document.getElementById('threadSection');
+  if(c.status === 'Disputed'){
+    threadSection.style.display = 'block';
+    document.getElementById('messagesList').innerHTML = (c.messages || []).map(m => `
+      <div class="message ${m.sender_type}">
+        <div class="meta">${m.sender_type === 'staff' ? 'STRPark Staff' : m.sender_email} \u00b7 ${m.created_at}</div>
+        ${m.message}
+      </div>`).join('') || '<p style="font-size:12.5px;color:var(--gray-mid);">No messages yet.</p>';
+  } else {
+    threadSection.style.display = 'none';
+  }
+}
+
+function openPhotoLightbox(url){
+  document.getElementById('photoLightboxImg').src = url;
+  document.getElementById('photoLightboxOverlay').style.display = 'flex';
+}
+function closePhotoLightbox(){
+  document.getElementById('photoLightboxOverlay').style.display = 'none';
+}
+
+function showPayConfirm(){
+  document.getElementById('payEmail').value = '';
+  document.getElementById('payError').style.display = 'none';
+  document.getElementById('payConfirm').style.display = 'block';
+  document.getElementById('activeActions').style.display = 'none';
+}
+function hidePayConfirm(){
+  document.getElementById('payConfirm').style.display = 'none';
+  if(currentCitation && (currentCitation.status === 'Active' || currentCitation.status === 'Paid')) document.getElementById('activeActions').style.display = 'block';
+}
+
+async function submitPay(){
+  const errEl = document.getElementById('payError');
+  const btn = document.getElementById('payBtn');
+  errEl.style.display = 'none';
+  const email = document.getElementById('payEmail').value.trim();
+  if(!email){ errEl.textContent = 'Email is required.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  try{
+    const back = new URL(location.href);
+    back.search = '';
+    back.searchParams.set('citation_id', currentCitation.id);
+    back.searchParams.set('plate', currentPlate);
+    const r = await apiCall('POST', '/citations/public-pay', {citation_id: currentCitation.id, plate: currentPlate, email, return_url: back.toString()});
+    location.href = new URL(r.checkout_url, location.href).toString();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function showDisputeForm(){
+  document.getElementById('disputeEmail').value = '';
+  document.getElementById('disputeReason').value = '';
+  document.getElementById('disputeError').style.display = 'none';
+  document.getElementById('disputeForm').style.display = 'block';
+  document.getElementById('activeActions').style.display = 'none';
+}
+function hideDisputeForm(){
+  document.getElementById('disputeForm').style.display = 'none';
+  if(currentCitation && (currentCitation.status === 'Active' || currentCitation.status === 'Paid')) document.getElementById('activeActions').style.display = 'block';
+}
+
+async function submitDispute(){
+  const errEl = document.getElementById('disputeError');
+  const btn = document.getElementById('disputeBtn');
+  errEl.style.display = 'none';
+  const email = document.getElementById('disputeEmail').value.trim();
+  const reason = document.getElementById('disputeReason').value.trim();
+  if(!email || !reason){ errEl.textContent = 'Email and a reason for the dispute are both required.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  try{
+    await apiCall('POST', '/citations/public-dispute', {
+      citation_id: currentCitation.id, plate: currentPlate, appellant_email: email, dispute_reason: reason
+    });
+    currentCitation = await apiCall('GET', `/citations/public-lookup?citation_id=${encodeURIComponent(currentCitation.id)}&plate=${encodeURIComponent(currentPlate)}`);
+    renderCitation();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function submitMessage(){
+  const errEl = document.getElementById('messageError');
+  const successEl = document.getElementById('messageSuccess');
+  const btn = document.getElementById('messageBtn');
+  errEl.style.display = 'none';
+  successEl.style.display = 'none';
+  const message = document.getElementById('newMessage').value.trim();
+  const email = currentCitation.appellant_email;
+  if(!message){ errEl.textContent = 'Enter a message first.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  try{
+    await apiCall('POST', '/citations/public-message', {citation_id: currentCitation.id, plate: currentPlate, email, message});
+    const fresh = await apiCall('GET', `/citations/public-lookup?citation_id=${currentCitation.id}&plate=${encodeURIComponent(currentPlate)}`);
+    currentCitation = fresh;
+    document.getElementById('newMessage').value = '';
+    renderCitation();
+    successEl.style.display = 'block';
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// Coming back from the payment page (or a link): ?citation_id=..&plate=..[&payment=success|declined]
+(function bootFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const id = params.get('citation_id'), plate = params.get('plate');
+  if(!id || !plate) return;
+  document.getElementById('lookupId').value = id;
+  document.getElementById('lookupPlate').value = plate;
+  doLookup().then(() => {
+    const payment = params.get('payment');
+    if(payment === 'success' && currentCitation && currentCitation.status === 'Paid'){
+      const el = document.getElementById('paymentNotice');
+      el.textContent = 'Payment received. Thank you.';
+      el.style.display = 'block';
+    } else if(payment === 'declined'){
+      const el = document.getElementById('paymentProblem');
+      el.textContent = "Your payment didn't go through. Please try again.";
+      el.style.display = 'block';
+    }
+  });
+})();
+
+// ---------- Branding: Instance logo (top-left) + Company footer ----------
+// Read from the public branding lookup, so it works with or without a login.
+const _brandCache = {};
+async function applyBranding(instanceId, showLogo = true){
+  try{
+    if(!instanceId){ setBranding(null); return; }
+    if(!_brandCache[instanceId]){
+      const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+      if(!r.ok) return;
+      _brandCache[instanceId] = await r.json();
+    }
+    setBranding(_brandCache[instanceId], showLogo);
+  }catch(e){ /* cosmetic only */ }
+}
+function setBranding(b, showLogo = true){
+  const logo = b && showLogo ? b.logo_data_url : null;
+  document.querySelectorAll('.brand-header-logo').forEach(img => {
+    img.style.display = logo ? 'block' : 'none';
+    if(logo) img.src = logo;
+  });
+  const footLogo = b ? b.footer_logo_data_url : null, footText = b ? b.footer_text : null;
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = footLogo ? 'block' : 'none';
+  if(footLogo) fl.src = footLogo;
+  document.getElementById('brandFooterText').textContent = footText || '';
+  document.getElementById('brandFooter').style.display = (footLogo || footText) ? 'flex' : 'none';
+}
+</script>
+</body>
+</html>

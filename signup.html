@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign Up Your Community — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --ok:#2F7A4F; --ok-bg:#E4F3E8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:24px;}
+  .masthead h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-0.01em;}
+  .masthead p{margin:4px 0 0;font-size:14px;color:var(--gray-mid);line-height:1.5;}
+  .card{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:24px;margin-bottom:18px;}
+  .card h2{margin:0 0 4px;font-size:16px;font-weight:800;}
+  .card .sub{font-size:13px;color:var(--gray-mid);margin:0 0 16px;line-height:1.5;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--gray-line);}
+  td{padding:10px;font-size:14px;border-bottom:1px solid #EFEDEA;}
+  td.num{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;flex:1;}
+  .field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .field input{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--gray-line);border-radius:6px;width:100%;}
+  .field input:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  .row{display:flex;gap:12px;}
+  .cycle{display:flex;gap:12px;flex-wrap:wrap;}
+  .cycle label{flex:1;min-width:200px;display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--gray-line);border-radius:10px;padding:14px;cursor:pointer;}
+  .cycle label.sel{border-color:var(--coral);background:var(--coral-tint);}
+  .cycle input{margin-top:3px;}
+  .cycle b{display:block;font-size:14.5px;}
+  .cycle span{font-size:12.5px;color:var(--gray-mid);}
+  .btn{width:100%;background:var(--coral);border:none;color:#fff;padding:14px 16px;border-radius:8px;font-family:inherit;font-weight:700;font-size:15.5px;cursor:pointer;}
+  .btn:hover{background:var(--coral-dark);}
+  .btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:14px;display:none;}
+  .note{font-size:12.5px;color:var(--gray-mid);line-height:1.5;margin-top:12px;text-align:center;}
+  .note a{color:var(--coral-dark);}
+  .trial{background:var(--ok-bg);color:var(--ok);border-radius:8px;padding:10px 14px;font-size:13.5px;font-weight:600;margin-top:14px;}
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 40px;}
+    .card{padding:18px 16px;}
+    .row{flex-direction:column;gap:0;}
+    .field input{font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Bring STRPark to your community</h1>
+    <p>Parking permits, guest passes and enforcement for your HOA, all in one place. Set up in minutes; your first <b id="trialDays1">30</b> days are free.</p>
+  </div>
+
+  <div class="card">
+    <h2>Plans</h2>
+    <p class="sub">Your price is based on how many Units your community has in STRPark. If you add Units and move into a bigger tier, the new price starts at your next billing date.</p>
+    <table>
+      <thead><tr><th>Tier</th><th>Units</th><th>Monthly</th><th>Annual</th></tr></thead>
+      <tbody id="tiersBody"><tr><td colspan="4" style="color:var(--gray-mid);">Loading&hellip;</td></tr></tbody>
+    </table>
+    <div class="trial" id="trialNote">&#10003; 30-day free trial. Your card is saved today and first charged when the trial ends.</div>
+  </div>
+
+  <div class="card">
+    <h2>Your community</h2>
+    <p class="sub">One community is one property: your HOA's homes and its parking lots.</p>
+    <div class="field"><label for="community_name">Community name</label><input id="community_name" placeholder="e.g. Pine Ridge HOA"></div>
+    <div class="field"><label for="street">Street address</label><input id="street"></div>
+    <div class="row">
+      <div class="field"><label for="city">City</label><input id="city"></div>
+      <div class="field"><label for="state">State</label><input id="state" maxlength="2"></div>
+      <div class="field"><label for="zip">ZIP</label><input id="zip" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" placeholder="530-555-0100"></div>
+  </div>
+
+  <div class="card">
+    <h2>You, the Community Admin</h2>
+    <p class="sub">You'll manage permits, fees, parking lots and your community's settings.</p>
+    <div class="field"><label for="admin_name">Your name</label><input id="admin_name"></div>
+    <div class="field"><label for="admin_email">Email</label><input id="admin_email" type="email" placeholder="you@example.com"></div>
+    <div class="row">
+      <div class="field"><label for="password">Password</label><input id="password" type="password" placeholder="At least 8 characters"></div>
+      <div class="field"><label for="password2">Confirm password</label><input id="password2" type="password"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Billing</h2>
+    <p class="sub">You can switch between monthly and annual later.</p>
+    <div class="cycle">
+      <label class="sel"><input type="radio" name="cycle" value="monthly" checked onchange="pickCycle()"><div><b>Monthly</b><span>Pay month to month</span></div></label>
+      <label><input type="radio" name="cycle" value="annual" onchange="pickCycle()"><div><b>Annual</b><span id="annualNote">Save with a yearly plan</span></div></label>
+    </div>
+  </div>
+
+  <div class="error" id="signupError"></div>
+  <button class="btn" id="signupBtn" onclick="doSignup()">Create community &amp; continue to card</button>
+  <p class="note">Already signed up? <a href="community_portal.html">Sign in to your Community Portal</a></p>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+const money = c => '$' + (c / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+async function apiCall(method, path, body, token){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  opts.headers['X-App-Base'] = new URL('.', location.href).href;
+  if(token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
+  return json;
+}
+
+async function loadPlans(){
+  try{
+    const p = await apiCall('GET', '/community-plans');
+    let lo = 1;
+    document.getElementById('tiersBody').innerHTML = p.tiers.map(t => {
+      const range = t.max_units === null ? `${lo}+` : `${lo}&ndash;${t.max_units}`;
+      if(t.max_units !== null) lo = t.max_units + 1;
+      return `<tr><td><b>${t.name}</b></td><td>${range}</td><td class="num">${money(t.monthly_price_cents)}/mo</td><td class="num">${money(t.annual_price_cents)}/yr</td></tr>`;
+    }).join('');
+    document.getElementById('trialDays1').textContent = p.trial_days;
+    document.getElementById('trialNote').innerHTML = p.trial_days
+      ? `&#10003; ${p.trial_days}-day free trial. Your card is saved today and first charged when the trial ends.`
+      : 'Your card is saved today and charged on your first billing date.';
+    if(p.annual_discount_percent) document.getElementById('annualNote').textContent = `Save ${p.annual_discount_percent}% with a yearly plan`;
+  }catch(e){
+    document.getElementById('tiersBody').innerHTML = `<tr><td colspan="4">Plans couldn't be loaded: ${e.message}</td></tr>`;
+  }
+}
+
+function pickCycle(){
+  document.querySelectorAll('.cycle label').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+}
+
+async function doSignup(){
+  const errEl = document.getElementById('signupError');
+  const btn = document.getElementById('signupBtn');
+  errEl.style.display = 'none';
+  const v = id => document.getElementById(id).value.trim();
+  const body = {
+    community_name: v('community_name'), street: v('street'), city: v('city'), state: v('state').toUpperCase(), zip: v('zip'),
+    phone: v('phone'), admin_name: v('admin_name'), admin_email: v('admin_email'),
+    password: document.getElementById('password').value,
+    billing_cycle: document.querySelector('input[name="cycle"]:checked').value,
+  };
+  const fail = msg => { errEl.textContent = msg; errEl.style.display = 'block'; errEl.scrollIntoView({behavior: 'smooth', block: 'center'}); };
+  const missing = Object.entries(body).filter(([k, val]) => !val).map(([k]) => k.replace('_', ' '));
+  if(missing.length) return fail('Please fill in: ' + missing.join(', ') + '.');
+  if(body.password.length < 8) return fail('Password must be at least 8 characters.');
+  if(body.password !== document.getElementById('password2').value) return fail("The two passwords don't match.");
+  btn.disabled = true;
+  try{
+    const r = await apiCall('POST', '/signup', body);
+    // Signed in: the Community Portal picks this up. Then save a card.
+    try{ localStorage.setItem('strpark_token', r.token); }catch(e){}
+    const back = new URL('community_portal.html?welcome=1', location.href).toString();
+    const co = await apiCall('POST', `/communities/${r.company_id}/subscription/checkout`, {return_url: back}, r.token);
+    location.href = new URL(co.checkout_url, location.href).toString();
+  }catch(e){
+    fail(e.message);
+    btn.disabled = false;
+  }
+}
+
+loadPlans();
+</script>
+</body>
+</html>

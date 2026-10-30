@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parking Permit — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --status-active:#B4791F; --status-active-bg:#FBEFDD;
+    --status-paid:#2F7A4F; --status-paid-bg:#E4F3E8;
+    --status-inactive:#8A8A8A; --status-inactive-bg:#EDEDED;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:520px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:24px;}
+  .masthead h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .masthead p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+
+  .lookup-box,.permit-card{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:28px;}
+  .lookup-box p{font-size:13px;color:var(--gray-mid);margin:0 0 20px;line-height:1.5;}
+  .modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
+  .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .modal-field input{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--gray-line);border-radius:6px;width:100%;}
+  .modal-field input#plateField{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.05em;}
+  .modal-error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:16px;display:none;}
+  .modal-success-inline{background:var(--status-paid-bg);color:var(--status-paid);border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:16px;display:none;}
+  .primary-btn{width:100%;background:var(--coral);border:none;color:#fff;padding:12px 16px;border-radius:6px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+  .primary-btn:hover{background:var(--coral-dark);}
+  .primary-btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .secondary-btn{display:block;width:100%;text-align:center;text-decoration:none;background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:12px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;margin-top:10px;}
+  .secondary-btn:hover{border-color:var(--coral-dark);color:var(--coral-dark);}
+
+  .permit-head{margin-bottom:16px;}
+  .permit-head h2{margin:0;font-size:17px;font-weight:800;}
+  .permit-head .sub{font-size:12px;color:var(--gray-mid);margin-top:2px;}
+  .status-pill{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap;display:inline-block;margin-top:8px;}
+  .status-Active,.status-Future{background:var(--status-active-bg);color:var(--status-active);}
+  .status-Pending,.status-Awaiting{background:var(--status-active-bg);color:var(--status-active);}
+  .fee-box{background:#F7F6F3;border:1px solid var(--gray-line);border-radius:8px;padding:12px 14px;margin:0 0 16px;font-size:13.5px;}
+  .fee-box .total{display:flex;justify-content:space-between;font-weight:800;font-size:16px;}
+  .fee-box .small{font-size:11.5px;color:var(--gray-mid);margin-top:4px;}
+  .status-Expired,.status-Cancelled{background:var(--status-inactive-bg);color:var(--status-inactive);}
+  .detail-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gray-line);font-size:13.5px;}
+  .detail-row:last-child{border-bottom:none;}
+  .detail-row .label{color:var(--gray-mid);}
+
+  .confirmed-box{text-align:center;padding:8px 0 4px;}
+  .confirmed-box .big-check{font-size:40px;margin-bottom:8px;}
+  .confirmed-box h3{margin:0 0 6px;font-size:16px;}
+  .confirmed-box p{font-size:13px;color:var(--gray-mid);margin:0 0 20px;line-height:1.5;}
+
+  #app,#confirmScreen{display:none;}
+
+  /* Branding: Instance logo (top-left) and Company footer */
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .masthead-brand{display:flex;align-items:center;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+
+  /* ---- Phones ---- */
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 40px;}
+    input, select, textarea{font-size:16px !important;}   /* 16px stops iPhone zooming in on tap */
+    .lookup-box, .permit-card, .citation-card{padding:20px 16px;}
+    .primary-btn, .secondary-btn, .danger-btn{padding:15px 16px;font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead"><div class="masthead-brand"><img class="brand-header-logo" alt="Logo"><div>
+    <h1>Parking Permit</h1>
+    <p>Provide Your License Plate</p>
+  </div></div></div>
+
+  <div id="lookupScreen">
+    <div class="lookup-box">
+      <p>Enter your Permit Number and email to view your permit and add your license plate.</p>
+      <div class="modal-error" id="lookupError"></div>
+      <div class="modal-field"><label for="lookupId">Permit Number</label><input type="text" id="lookupId" placeholder="e.g. 42" inputmode="numeric"></div>
+      <div class="modal-field"><label for="lookupEmail">Email</label><input type="email" id="lookupEmail" placeholder="you@example.com"></div>
+      <button class="primary-btn" id="lookupBtn" onclick="doLookup()">Look Up Permit</button>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="permit-card">
+      <div class="permit-head">
+        <h2 id="permitInstance">&mdash;</h2>
+        <div class="sub" id="permitSub">&mdash;</div>
+        <span class="status-pill" id="permitStatusPill"></span>
+      </div>
+      <div class="detail-row"><span class="label">Unit</span><span id="permitUnit">&mdash;</span></div>
+      <div class="detail-row"><span class="label">Permit Type</span><span id="permitType">&mdash;</span></div>
+      <div class="detail-row"><span class="label">Valid</span><span id="permitDates">&mdash;</span></div>
+      <div class="detail-row" id="platRow" style="display:none;"><span class="label">Plate</span><span id="permitPlate">&mdash;</span></div>
+    </div>
+
+    <div id="plateFormSection" style="margin-top:16px;">
+      <div class="permit-card">
+        <p style="margin:0 0 16px;font-size:13px;color:var(--gray-mid);" id="plateIntro">Add your license plate below to confirm this permit.</p>
+        <div class="fee-box" id="plateFeeBox" style="display:none;"></div>
+        <div class="modal-error" id="plateError"></div>
+        <div class="modal-field"><label for="nameField">Your Name</label><input type="text" id="nameField" placeholder="First and last name"></div>
+        <div class="modal-field"><label for="plateField">License Plate</label><input type="text" id="plateField" placeholder="e.g. ABC1234"></div>
+        <button class="primary-btn" id="plateSubmitBtn" onclick="submitPlate()">Confirm Permit</button>
+      </div>
+    </div>
+
+    <div id="paySection" style="margin-top:16px;display:none;">
+      <div class="permit-card">
+        <p style="margin:0 0 16px;font-size:13px;color:var(--gray-mid);">Your plate is on file. Pay the parking fee to confirm this permit.</p>
+        <div class="fee-box" id="payFeeBox"></div>
+        <div class="modal-error" id="payError"></div>
+        <button class="primary-btn" id="payBtn" onclick="startPayment()">Pay</button>
+      </div>
+    </div>
+
+    <div id="alreadyConfirmedSection" style="margin-top:16px;display:none;">
+      <div class="permit-card">
+        <p style="margin:0;font-size:13px;color:var(--gray-mid);">This permit already has a plate on file. Your permit will be available in your room when you arrive.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmScreen">
+    <div class="permit-card">
+      <div class="confirmed-box">
+        <div class="big-check">&#9989;</div>
+        <h3>Your permit is confirmed</h3>
+        <p>Your permit will be available in your room when you arrive.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+let currentPermit = null;
+let currentEmail = null;
+
+// Today's date on THIS device (not UTC), sent with every request so the
+// server's "today" matches the user's own calendar.
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function apiCall(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  opts.headers['X-Client-Date'] = localDateISO();
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok) throw new Error(json.error || `Request failed (${res.status})`);
+  return json;
+}
+
+function fmtDate(iso){
+  if(!iso) return 'No end date';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+
+const money = c => '$' + (c / 100).toFixed(2);
+
+// The all-in price is shown up front (fee + card processing fee), not added at the end.
+function feeBoxHtml(p){
+  return `<div class="total"><span>Parking fee</span><span>${money(p.payment_total_cents)}</span></div>
+    <div class="small">${p.nightly_fee_cents ? `${p.fee_nights} night${p.fee_nights === 1 ? '' : 's'} &times; ${money(p.nightly_fee_cents)}, plus` : 'Includes'} a ${money(p.card_fee_cents)} card processing fee. Paid to ${p.instance_name}.</div>`;
+}
+function needsPayment(p){ return p.payment_status === 'awaiting'; }
+
+async function lookupPermit(permitId, email){
+  const errEl = document.getElementById('lookupError');
+  errEl.style.display = 'none';
+  try{
+    const result = await apiCall('GET', `/permits/public-lookup?permit_id=${encodeURIComponent(permitId)}&email=${encodeURIComponent(email)}`);
+    currentPermit = result;
+    currentEmail = email;
+    renderPermit();
+    document.getElementById('lookupScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function doLookup(){
+  const btn = document.getElementById('lookupBtn');
+  const permitId = document.getElementById('lookupId').value.trim();
+  const email = document.getElementById('lookupEmail').value.trim();
+  const errEl = document.getElementById('lookupError');
+  errEl.style.display = 'none';
+  if(!permitId || !email){
+    errEl.textContent = 'Both the Permit Number and email are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  await lookupPermit(permitId, email);
+  btn.disabled = false;
+}
+
+function renderPermit(){
+  const p = currentPermit;
+  applyBranding(p.instance_id);
+  document.getElementById('permitInstance').textContent = p.instance_name;
+  document.getElementById('permitSub').textContent = `Permit #${p.id}`;
+  document.getElementById('permitStatusPill').textContent = p.status;
+  document.getElementById('permitStatusPill').className = `status-pill status-${p.status}`;
+  document.getElementById('permitUnit').textContent = p.unit_code;
+  document.getElementById('permitType').textContent = p.permit_type_name;
+  document.getElementById('permitDates').textContent = `${fmtDate(p.start_date)} \u2192 ${p.end_date ? fmtDate(p.end_date) : 'No end date'}`;
+
+  const plateRow = document.getElementById('platRow');
+  const plateFormSection = document.getElementById('plateFormSection');
+  const paySection = document.getElementById('paySection');
+  const alreadyConfirmedSection = document.getElementById('alreadyConfirmedSection');
+  paySection.style.display = 'none';
+
+  if(p.plate){
+    plateRow.style.display = 'flex';
+    document.getElementById('permitPlate').textContent = p.plate;
+    plateFormSection.style.display = 'none';
+    if(needsPayment(p)){
+      document.getElementById('payFeeBox').innerHTML = feeBoxHtml(p);
+      document.getElementById('payBtn').textContent = `Pay ${money(p.payment_total_cents)}`;
+      paySection.style.display = 'block';
+      alreadyConfirmedSection.style.display = 'none';
+    } else {
+      alreadyConfirmedSection.style.display = 'block';
+    }
+  } else {
+    plateRow.style.display = 'none';
+    plateFormSection.style.display = 'block';
+    alreadyConfirmedSection.style.display = 'none';
+    document.getElementById('nameField').value = p.name || '';
+    const feeBox = document.getElementById('plateFeeBox');
+    if(needsPayment(p)){
+      document.getElementById('plateIntro').textContent = 'Add your license plate, then pay the parking fee to confirm this permit.';
+      feeBox.innerHTML = feeBoxHtml(p);
+      feeBox.style.display = 'block';
+      document.getElementById('plateSubmitBtn').textContent = `Continue to Payment (${money(p.payment_total_cents)})`;
+    } else {
+      feeBox.style.display = 'none';
+    }
+  }
+}
+
+function showConfirmed(){
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('confirmScreen').style.display = 'block';
+}
+
+// Sends the guest to the payment page; it returns here with ?payment=success|declined.
+async function startPayment(errElId = 'payError'){
+  const errEl = document.getElementById(errElId);
+  errEl.style.display = 'none';
+  try{
+    const back = new URL(location.href);
+    back.search = '';
+    back.searchParams.set('permit_id', currentPermit.id);
+    back.searchParams.set('email', currentEmail);
+    const r = await apiCall('POST', '/permits/public-checkout', {
+      permit_id: currentPermit.id, email: currentEmail, return_url: back.toString(),
+    });
+    if(!r.payment_required){ showConfirmed(); return; }
+    location.href = new URL(r.checkout_url, location.href).toString();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function submitPlate(){
+  const errEl = document.getElementById('plateError');
+  const btn = document.getElementById('plateSubmitBtn');
+  errEl.style.display = 'none';
+  const name = document.getElementById('nameField').value.trim();
+  const plate = document.getElementById('plateField').value.trim();
+  if(!name || !plate){
+    errEl.textContent = 'Both your name and license plate are required.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.disabled = true;
+  try{
+    const updated = await apiCall('POST', '/permits/provide-plate', {
+      permit_id: currentPermit.id, email: currentEmail, plate, name,
+    });
+    currentPermit = Object.assign(currentPermit, updated);
+    if(updated.status === 'Awaiting Payment'){
+      renderPermit();          // shows the Pay step, in case the redirect fails
+      await startPayment('payError');
+      return;
+    }
+    showConfirmed();
+  }catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('plateField').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') submitPlate();
+});
+document.getElementById('lookupEmail').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') doLookup();
+});
+
+// If the email link included permit_id + email, skip straight to lookup --
+// this is the actual real-world path almost every Guest will take.
+(function bootFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const permitId = params.get('permit_id');
+  const email = params.get('email');
+  if(permitId && email){
+    document.getElementById('lookupId').value = permitId;
+    document.getElementById('lookupEmail').value = email;
+    const payment = params.get('payment');
+    lookupPermit(permitId, email).then(() => {
+      if(!currentPermit) return;
+      if(payment === 'success' && !needsPayment(currentPermit)) showConfirmed();
+      else if(payment === 'declined' && needsPayment(currentPermit)){
+        const errEl = document.getElementById('payError');
+        errEl.textContent = "Your payment didn't go through. Please try again.";
+        errEl.style.display = 'block';
+      }
+    });
+  }
+})();
+
+// ---------- Branding: Instance logo (top-left) + Company footer ----------
+// Read from the public branding lookup, so it works with or without a login.
+const _brandCache = {};
+async function applyBranding(instanceId, showLogo = true){
+  try{
+    if(!instanceId){ setBranding(null); return; }
+    if(!_brandCache[instanceId]){
+      const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+      if(!r.ok) return;
+      _brandCache[instanceId] = await r.json();
+    }
+    setBranding(_brandCache[instanceId], showLogo);
+  }catch(e){ /* cosmetic only */ }
+}
+function setBranding(b, showLogo = true){
+  const logo = b && showLogo ? b.logo_data_url : null;
+  document.querySelectorAll('.brand-header-logo').forEach(img => {
+    img.style.display = logo ? 'block' : 'none';
+    if(logo) img.src = logo;
+  });
+  const footLogo = b ? b.footer_logo_data_url : null, footText = b ? b.footer_text : null;
+  const fl = document.getElementById('brandFooterLogo');
+  fl.style.display = footLogo ? 'block' : 'none';
+  if(footLogo) fl.src = footLogo;
+  document.getElementById('brandFooterText').textContent = footText || '';
+  document.getElementById('brandFooter').style.display = (footLogo || footText) ? 'flex' : 'none';
+}
+</script>
+</body>
+</html>
