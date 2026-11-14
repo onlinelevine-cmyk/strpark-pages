@@ -3605,10 +3605,14 @@ async function saveType(){
 
 async function deleteType(kind, id){
   const t = typeList(kind).find(x=>x.id===id);
-  if(!confirm(`Delete ${typeLabel(kind)} "${t.name}"? This also removes its fee/fine/detail settings and any overrides, everywhere it is used.`)) return;
+  const msg = kind === 'permit'
+    ? `Delete Permit Type "${t.name}"? It won't be offered for new permits, and its fee settings are removed. Permits already issued with it keep it.`
+    : `Delete ${typeLabel(kind)} "${t.name}"? This also removes its fee/fine/detail settings and any overrides, everywhere it is used.`;
+  if(!confirm(msg)) return;
   try{
-    await api('DELETE', `/${typeEndpoint(kind)}/${id}`);
+    const res = await api('DELETE', `/${typeEndpoint(kind)}/${id}`);
     await cfg_onInstanceChange();
+    if(res && res.retired) alert(res.message);
   }catch(e){
     if(kind === 'unit' && e.status === 409 && e.data && e.data.in_use) openMoveUnits(id, t.name, e.data);
     else alert(e.message);

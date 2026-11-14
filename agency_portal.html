@@ -640,7 +640,7 @@ async function openPermitModal(unit, existingPermit){
     if(existingPermit) unitSel.value = existingPermit.unit_id;
   }
 
-  await loadPermitTypesForCurrentUnit(existingPermit ? existingPermit.permit_type_id : null);
+  await loadPermitTypesForCurrentUnit(existingPermit ? existingPermit.permit_type_id : null, existingPermit ? existingPermit.permit_type_name : null);
 
   document.getElementById('permitFirst').value = existingPermit ? (existingPermit.name || '').split(' ')[0] || '' : '';
   document.getElementById('permitLast').value = existingPermit ? (existingPermit.name || '').split(' ').slice(1).join(' ') : '';
@@ -653,7 +653,7 @@ async function openPermitModal(unit, existingPermit){
   document.getElementById('permitModalOverlay').classList.add('open');
 }
 
-async function loadPermitTypesForCurrentUnit(selectedTypeId){
+async function loadPermitTypesForCurrentUnit(selectedTypeId, selectedTypeName){
   const companyId = permitModalUnit ? permitModalUnit.company_id : document.getElementById('permitUnit').selectedOptions[0]?.dataset.company;
   const instanceId = permitModalUnit ? permitModalUnit.instance_id : document.getElementById('permitUnit').selectedOptions[0]?.dataset.instance;
   if(!companyId || !instanceId) return;
@@ -672,6 +672,8 @@ async function loadPermitTypesForCurrentUnit(selectedTypeId){
   if(currentUser.role === 'agency_agent') relevantTypes = relevantTypes.filter(t => t.name === 'Guest');
   const typeSel = document.getElementById('permitType');
   typeSel.innerHTML = (relevantTypes.length ? relevantTypes : types).map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  // A permit whose type was since deleted keeps that type: show it.
+  if(selectedTypeId && selectedTypeName && ![...typeSel.options].some(o => +o.value === selectedTypeId)) typeSel.insertAdjacentHTML('beforeend', `<option value="${selectedTypeId}">${selectedTypeName}</option>`);
   if(selectedTypeId) typeSel.value = selectedTypeId;
 }
 document.addEventListener('change', e => { if(e.target && e.target.id === 'permitUnit') loadPermitTypesForCurrentUnit(); });

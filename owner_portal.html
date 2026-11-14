@@ -655,6 +655,8 @@ async function openPermitModal(permitId){
   }
   const typeSel = document.getElementById('permitType');
   typeSel.innerHTML = permitTypes.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  // A permit whose type was since deleted keeps that type: show it.
+  if(p && !permitTypes.some(t => t.id === p.permit_type_id)) typeSel.insertAdjacentHTML('beforeend', `<option value="${p.permit_type_id}">${p.permit_type_name}</option>`);
   typeSel.disabled = !!p;
 
   document.getElementById('permitName').value = p ? (p.name || '') : '';

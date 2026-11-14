@@ -408,6 +408,20 @@
 </div>
 
 <!-- ===== Modals ===== -->
+<div class="modal-overlay" id="moveUnitsModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2>Move Units, then delete</h2></div><button class="modal-close" onclick="closeModal('moveUnitsModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="moveUnitsError"></div>
+      <p id="moveUnitsText" style="font-size:14px;line-height:1.5;margin:0 0 14px;"></p>
+      <div class="modal-field"><label for="moveUnitsTo">Move them to</label><select id="moveUnitsTo"></select></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('moveUnitsModal')">Cancel</button>
+        <button class="modal-btn-primary" id="moveUnitsBtn" onclick="confirmMoveUnits()">Move and delete</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="typeModal">
   <div class="modal-box">
     <div class="modal-head"><div><h2 id="typeModalTitle">Edit</h2><div class="sub" id="typeModalSub"></div></div><button class="modal-close" onclick="closeModal('typeModal')">&times;</button></div>
@@ -577,7 +591,7 @@ async function api(method, path, body){
   if(text){ try{ data = JSON.parse(text); }catch(e){ data = null; } }
   if(!res.ok){
     const err = new Error((data && data.error) ? data.error : `Request failed (${res.status})`);
-    err.status = res.status;
+    err.status = res.status; err.data = data;
     throw err;
   }
   return data;
@@ -898,13 +912,42 @@ async function saveType(){
 
 async function deleteType(){
   const {kind, id, original} = typeEditing;
-  if(!confirm(`Delete "${original}"? This can't be undone.`)) return;
+  if(!confirm(kind === 'permit' ? `Delete "${original}"? It won't be offered for new permits. Permits already issued with it keep it.` : `Delete "${original}"? This can't be undone.`)) return;
   try{
-    await api('DELETE', `/${KIND[kind].path}/${id}`);
+    const res = await api('DELETE', `/${KIND[kind].path}/${id}`);
     closeModal('typeModal');
     await loadFees();
-  }catch(e){ showError('typeModalError', e.message); }
+    if(res && res.retired) alert(res.message);
+  }catch(e){
+    if(kind === 'unit' && e.status === 409 && e.data && e.data.in_use){ closeModal('typeModal'); openMoveUnits(id, original, e.data); }
+    else showError('typeModalError', e.message);
+  }
 }
+
+// ---------- Delete a Unit type that Units still use: move them first ----------
+let moveUnitsCtx = null;
+function openMoveUnits(typeId, typeName, data){
+  moveUnitsCtx = {typeId};
+  const n = data.in_use, opts = data.move_options || [];
+  document.getElementById('moveUnitsError').style.display = 'none';
+  document.getElementById('moveUnitsText').innerHTML = `<b>${n} Unit${n === 1 ? '' : 's'}</b> use${n === 1 ? 's' : ''} "${esc(typeName)}". Choose another Unit type for ${n === 1 ? 'it' : 'them'}, and "${esc(typeName)}" will then be deleted. Their permits are not affected; the new type's Max Active and other details apply from now on.`;
+  const sel = document.getElementById('moveUnitsTo');
+  sel.innerHTML = opts.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+  document.getElementById('moveUnitsBtn').disabled = !opts.length;
+  if(!opts.length){ const e = document.getElementById('moveUnitsError'); e.textContent = 'There is no other Unit type these Units can use. Create one first.'; e.style.display = 'block'; }
+  document.getElementById('moveUnitsModal').classList.add('open');
+}
+async function confirmMoveUnits(){
+  const to = document.getElementById('moveUnitsTo').value;
+  const btn = document.getElementById('moveUnitsBtn'); btn.disabled = true;
+  try{
+    await api('DELETE', `/unit-types/${moveUnitsCtx.typeId}?move_to=${to}`);
+    document.getElementById('moveUnitsModal').classList.remove('open');
+    await loadFees();
+  }catch(e){ showError('moveUnitsError', e.message); }
+  finally{ btn.disabled = false; }
+}
+
 
 // ---------- Parking Lots ----------
 
