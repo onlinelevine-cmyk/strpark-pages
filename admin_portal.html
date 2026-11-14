@@ -777,6 +777,20 @@
 <div class="scope-setup">
 
 
+<div class="modal-overlay" id="moveUnitsModal">
+  <div class="modal-box">
+    <div class="modal-head"><div><h2>Move Units, then delete</h2></div><button class="modal-close" onclick="closeModal('moveUnitsModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="modal-error" id="moveUnitsError"></div>
+      <p id="moveUnitsText" style="font-size:14px;line-height:1.5;margin:0 0 14px;"></p>
+      <div class="modal-field"><label for="moveUnitsTo">Move them to</label><select id="moveUnitsTo"></select></div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" onclick="closeModal('moveUnitsModal')">Cancel</button>
+        <button class="modal-btn-primary" id="moveUnitsBtn" onclick="confirmMoveUnits()">Move and delete</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="companyModalOverlay">
   <div class="modal-box">
     <div class="modal-head"><div><h2 id="companyModalTitle">Add Company</h2></div><button class="modal-close" onclick="closeModal('companyModalOverlay')">&times;</button></div>
@@ -3596,9 +3610,35 @@ async function deleteType(kind, id){
     await api('DELETE', `/${typeEndpoint(kind)}/${id}`);
     await cfg_onInstanceChange();
   }catch(e){
-    alert(e.message);
+    if(kind === 'unit' && e.status === 409 && e.data && e.data.in_use) openMoveUnits(id, t.name, e.data);
+    else alert(e.message);
   }
 }
+
+// ---------- Delete a Unit type that Units still use: move them first ----------
+let moveUnitsCtx = null;
+function openMoveUnits(typeId, typeName, data){
+  moveUnitsCtx = {typeId};
+  const n = data.in_use, opts = data.move_options || [];
+  document.getElementById('moveUnitsError').style.display = 'none';
+  document.getElementById('moveUnitsText').innerHTML = `<b>${n} Unit${n === 1 ? '' : 's'}</b> use${n === 1 ? 's' : ''} "${escHtml(typeName)}". Choose another Unit type for ${n === 1 ? 'it' : 'them'}, and "${escHtml(typeName)}" will then be deleted. Their permits are not affected; the new type's Max Active and other details apply from now on.`;
+  const sel = document.getElementById('moveUnitsTo');
+  sel.innerHTML = opts.map(o => `<option value="${o.id}">${escHtml(o.name)}</option>`).join('');
+  document.getElementById('moveUnitsBtn').disabled = !opts.length;
+  if(!opts.length){ const e = document.getElementById('moveUnitsError'); e.textContent = 'There is no other Unit type these Units can use. Create one first.'; e.style.display = 'block'; }
+  document.getElementById('moveUnitsModal').classList.add('open');
+}
+async function confirmMoveUnits(){
+  const to = document.getElementById('moveUnitsTo').value;
+  const btn = document.getElementById('moveUnitsBtn'); btn.disabled = true;
+  try{
+    await api('DELETE', `/unit-types/${moveUnitsCtx.typeId}?move_to=${to}`);
+    document.getElementById('moveUnitsModal').classList.remove('open');
+    await cfg_onInstanceChange();
+  }catch(e){ const el = document.getElementById('moveUnitsError'); el.textContent = e.message; el.style.display = 'block'; }
+  finally{ btn.disabled = false; }
+}
+
 
 // ---------- Edit Value (Fee / Fine / Unit Details) ----------
 
