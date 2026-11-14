@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parking Permit — STRPark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#C1615B; --coral-dark:#9C4A45; --coral-tint:#F6E7E5;
+    --gray-ink:#2B2B2B; --gray-mid:#6E6E6E; --gray-line:#DEDAD5; --bg:#F4F5F7; --surface:#FFFFFF;
+    --ok:#2F7A4F; --ok-bg:#E4F3E8; --bad:#B23B3B; --bad-bg:#FAE6E6;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Libre Franklin',sans-serif;background:var(--bg);color:var(--gray-ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:520px;margin:0 auto;padding:28px 24px 60px;}
+  .masthead{border-bottom:3px solid var(--coral);padding-bottom:16px;margin-bottom:24px;display:flex;align-items:center;}
+  .masthead h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.01em;}
+  .masthead p{margin:2px 0 0;font-size:12.5px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;}
+  .brand-header-logo{max-height:52px;max-width:180px;object-fit:contain;display:none;margin-right:14px;}
+  .card{background:var(--surface);border:1px solid var(--gray-line);border-radius:12px;padding:26px;}
+  .card + .card{margin-top:16px;}
+  .intro{font-size:13.5px;color:var(--gray-mid);margin:0 0 18px;line-height:1.5;}
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;flex:1;min-width:0;}
+  .field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
+  .field input{font-family:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--gray-line);border-radius:6px;width:100%;}
+  .field input:focus{outline:2px solid var(--coral);outline-offset:1px;}
+  #plate{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+  .row{display:flex;gap:12px;}
+  .fee-box{background:#F7F6F3;border:1px solid var(--gray-line);border-radius:8px;padding:12px 14px;margin:4px 0 16px;font-size:13.5px;}
+  .fee-box .total{display:flex;justify-content:space-between;font-weight:800;font-size:16px;}
+  .fee-box .small{font-size:11.5px;color:var(--gray-mid);margin-top:4px;}
+  .error{background:var(--bad-bg);color:var(--bad);border-radius:6px;padding:10px 12px;font-size:13px;font-weight:600;margin-bottom:14px;display:none;line-height:1.45;}
+  .btn{width:100%;background:var(--coral);border:none;color:#fff;padding:13px 16px;border-radius:8px;font-family:inherit;font-weight:700;font-size:15px;cursor:pointer;}
+  .btn:hover{background:var(--coral-dark);}
+  .btn:disabled{background:var(--gray-line);cursor:not-allowed;}
+  .btn.secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);margin-top:10px;}
+  .closed{text-align:center;padding:36px 22px;}
+  .closed .icon{font-size:40px;margin-bottom:8px;}
+  .closed h2{margin:0 0 10px;font-size:19px;}
+  .closed p{margin:0;font-size:15px;line-height:1.55;color:var(--gray-ink);}
+  .done{text-align:center;}
+  .done .icon{font-size:42px;}
+  .done h2{margin:6px 0 4px;font-size:19px;}
+  .done .sub{font-size:13px;color:var(--gray-mid);margin-bottom:16px;}
+  .detail{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--gray-line);font-size:14px;text-align:left;}
+  .detail:last-child{border-bottom:none;}
+  .detail .label{color:var(--gray-mid);}
+  .mono{font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:.04em;}
+  .note{font-size:12.5px;color:var(--gray-mid);line-height:1.5;margin-top:14px;text-align:center;}
+  .loading{text-align:center;color:var(--gray-mid);padding:30px 0;}
+  .brand-footer{display:none;align-items:center;gap:14px;margin-top:26px;padding:14px 4px 0;border-top:1px solid var(--gray-line);font-size:12px;color:var(--gray-mid);}
+  .brand-footer img{max-height:40px;max-width:160px;object-fit:contain;}
+  .hidden{display:none;}
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 40px;}
+    .card{padding:20px 16px;}
+    .field input{font-size:16px;}   /* 16px stops iPhone zooming in on tap */
+    .btn{padding:15px 16px;font-size:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <img class="brand-header-logo" id="brandLogo" alt="Logo">
+    <div><h1 id="placeName">Parking Permit</h1><p id="placeSub">Visitor parking</p></div>
+  </div>
+
+  <div id="loading" class="card loading">Loading&hellip;</div>
+
+  <div id="notFound" class="card closed hidden">
+    <div class="icon">&#128269;</div>
+    <h2>Page not found</h2>
+    <p id="notFoundMsg">We couldn't find this parking page. Please check the address.</p>
+  </div>
+
+  <div id="closed" class="card closed hidden">
+    <div class="icon">&#10052;&#65039;</div>
+    <h2 id="closedTitle">Closed</h2>
+    <p id="closedMsg"></p>
+  </div>
+
+  <div id="formView" class="hidden">
+    <div class="card">
+      <p class="intro">Buy a parking permit for your visit. Parking patrol checks your license plate, so there's nothing to print.</p>
+      <div class="error" id="formError"></div>
+      <div class="field"><label for="name">Your name</label><input id="name" autocomplete="name" placeholder="First and last name"></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" placeholder="530-555-0100"></div>
+      <div class="field"><label for="plate">License plate</label><input id="plate" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="10" placeholder="ABC1234"></div>
+      <div class="row">
+        <div class="field"><label for="start">Start date</label><input id="start" type="date"></div>
+        <div class="field"><label for="end">End date</label><input id="end" type="date"></div>
+      </div>
+      <div class="fee-box" id="feeBox"></div>
+      <button class="btn" id="submitBtn" onclick="submitPermit()">Continue to payment</button>
+      <p class="note" id="seasonNote"></p>
+    </div>
+  </div>
+
+  <div id="doneView" class="hidden">
+    <div class="card done">
+      <div class="icon" id="doneIcon">&#9989;</div>
+      <h2 id="doneTitle">You're all set</h2>
+      <div class="sub" id="doneSub"></div>
+      <div id="doneDetails"></div>
+      <div class="error" id="doneError" style="margin-top:14px;"></div>
+      <button class="btn hidden" id="retryBtn" onclick="retryPayment()">Try payment again</button>
+      <button class="btn secondary" id="anotherBtn" onclick="startOver()">Buy another permit</button>
+    </div>
+  </div>
+
+  <div class="brand-footer" id="brandFooter"><img id="brandFooterLogo" alt="" style="display:none;"><span id="brandFooterText"></span></div>
+</div>
+
+<script>
+const API_BASE = 'https://api-staging.strpark.com';
+
+// The page works at /p/<community> (with the host's rewrite rule) and at
+// public_permit.html?c=<community> (no setup needed).
+const PATH_MATCH = location.pathname.match(/^(.*)\/p\/([a-z0-9-]+)\/?$/i);
+const params = new URLSearchParams(location.search);
+const SLUG = ((PATH_MATCH && PATH_MATCH[2]) || params.get('c') || '').toLowerCase();
+// Folder that holds the site's pages (so links never go under /p/).
+const SITE_BASE = PATH_MATCH ? location.origin + PATH_MATCH[1] + '/' : new URL('.', location.href).href;
+
+let page = null;
+
+function localDateISO(d = new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+async function api(method, path, body){
+  const opts = {method, headers: {'Content-Type': 'application/json', 'X-Client-Date': localDateISO(), 'X-App-Base': SITE_BASE}};
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if(!res.ok){ const e = new Error(json.error || `Request failed (${res.status})`); e.status = res.status; throw e; }
+  return json;
+}
+const $ = id => document.getElementById(id);
+const show = (id, on = true) => $(id).classList.toggle('hidden', !on);
+const money = c => '$' + (c / 100).toFixed(2);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'});
+}
+function nights(a, b){
+  if(!a || !b) return 0;
+  const n = Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
+  return Math.max(1, n);
+}
+// Same as the server: total = ceil((fee + 30c) / 0.971)
+const withCardFee = c => Math.ceil((c + 30) * 1000 / 971);
+
+async function applyBranding(instanceId){
+  try{
+    const r = await fetch(API_BASE + `/instances/${instanceId}/branding`);
+    if(!r.ok) return;
+    const b = await r.json();
+    if(b.logo_data_url){ $('brandLogo').src = b.logo_data_url; $('brandLogo').style.display = 'block'; }
+    if(b.footer_logo_data_url){ $('brandFooterLogo').src = b.footer_logo_data_url; $('brandFooterLogo').style.display = 'block'; }
+    $('brandFooterText').textContent = b.footer_text || '';
+    $('brandFooter').style.display = (b.footer_logo_data_url || b.footer_text) ? 'flex' : 'none';
+  }catch(e){ /* cosmetic only */ }
+}
+
+function updateFee(){
+  const box = $('feeBox');
+  if(!page || !page.fee_cents){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const s = $('start').value, e = $('end').value;
+  const daily = page.fee_basis === 'daily';
+  let base = page.fee_cents, line = `Parking fee ${money(page.fee_cents)}${daily ? ' per night' : ''}`;
+  if(daily && s && e && e >= s){
+    const n = nights(s, e);
+    base = page.fee_cents * n;
+    line = `${n} night${n === 1 ? '' : 's'} &times; ${money(page.fee_cents)}`;
+  }
+  const total = withCardFee(base);
+  box.innerHTML = `<div>${line}</div>
+    <div class="total" style="margin-top:6px;"><span>Total</span><span>${money(total)}</span></div>
+    <div class="small">Includes a ${money(total - base)} card processing fee.${daily && !(s && e) ? ' Choose your dates to see the total.' : ''}</div>`;
+}
+
+function showForm(){
+  show('formView'); show('doneView', false);
+  const today = page.today || localDateISO();
+  $('start').min = today; $('end').min = today;
+  if(page.open_until){ $('start').max = page.open_until; $('end').max = page.open_until; }
+  if(!$('start').value) $('start').value = today;
+  if(!$('end').value) $('end').value = today;
+  $('seasonNote').textContent = page.open_until ? `Permits are available through ${fmtDate(page.open_until)}.` : '';
+  updateFee();
+}
+
+async function submitPermit(){
+  const err = $('formError'); err.style.display = 'none';
+  const body = {
+    name: $('name').value.trim(), email: $('email').value.trim(), phone: $('phone').value.trim(),
+    plate: $('plate').value.trim().toUpperCase().replace(/\s+/g, ''), start_date: $('start').value, end_date: $('end').value,
+  };
+  const missing = [['name', 'your name'], ['email', 'email'], ['phone', 'phone'], ['plate', 'license plate'], ['start_date', 'start date'], ['end_date', 'end date']]
+    .filter(([k]) => !body[k]).map(([, l]) => l);
+  if(missing.length){ err.textContent = 'Please fill in: ' + missing.join(', ') + '.'; err.style.display = 'block'; return; }
+  if(body.end_date < body.start_date){ err.textContent = 'The end date must be on or after the start date.'; err.style.display = 'block'; return; }
+  // Come back here after paying, carrying what we need to show the permit.
+  const back = new URL(location.href);
+  back.search = '';
+  if(!PATH_MATCH) back.searchParams.set('c', SLUG);
+  body.return_url = back.toString();
+  $('submitBtn').disabled = true;
+  try{
+    const r = await api('POST', `/public/pages/${encodeURIComponent(SLUG)}/permits`, body);
+    if(!r.payment_required){ showDone(r.permit, 'paid'); return; }
+    // pay_simulated.html sends the visitor back with ?payment=success|declined
+    // (the server already added the permit number and email to the return link).
+    location.href = new URL(r.checkout_url, SITE_BASE).toString();
+  }catch(e){
+    err.textContent = e.message; err.style.display = 'block';
+    $('submitBtn').disabled = false;
+  }
+}
+
+let lastPermit = null;
+function showDone(p, outcome){
+  lastPermit = p;
+  show('formView', false); show('doneView');
+  const paid = outcome !== 'declined' && p.status !== 'Awaiting Payment';
+  $('doneIcon').innerHTML = paid ? '&#9989;' : '&#9888;&#65039;';
+  $('doneTitle').textContent = paid ? "You're all set" : 'Payment not completed';
+  $('doneSub').textContent = paid ? `Permit #${p.id} is confirmed. We've emailed you a copy.` : 'Your card was declined, so the permit is not active yet.';
+  $('doneDetails').innerHTML = [
+    ['License plate', `<span class="mono">${esc(p.plate)}</span>`],
+    ['Dates', p.start_date === p.end_date ? fmtDate(p.start_date) : `${fmtDate(p.start_date)} &ndash; ${fmtDate(p.end_date)}`],
+    ['Status', esc(p.status)],
+    p.payment_total_cents ? ['Total', money(p.payment_total_cents)] : null,
+  ].filter(Boolean).map(([l, v]) => `<div class="detail"><span class="label">${l}</span><span>${v}</span></div>`).join('')
+    + (paid ? '<p class="note">Nothing to print: parking patrol checks your license plate.</p>' : '');
+  show('retryBtn', !paid);
+}
+
+async function retryPayment(){
+  const p = lastPermit; if(!p) return;
+  const ret = new URL(location.href);
+  ret.searchParams.delete('payment');
+  try{
+    const co = await api('POST', '/permits/public-checkout', {permit_id: p.id, email: p.email, return_url: ret.toString()});
+    location.href = new URL(co.checkout_url, SITE_BASE).toString();
+  }catch(e){ $('doneError').textContent = e.message; $('doneError').style.display = 'block'; }
+}
+
+function startOver(){
+  const u = new URL(location.href);
+  ['payment', 'permit_id', 'email'].forEach(k => u.searchParams.delete(k));
+  location.href = u.toString();
+}
+
+async function load(){
+  if(!SLUG){ show('loading', false); show('notFound'); return; }
+  try{
+    page = await api('GET', `/public/pages/${encodeURIComponent(SLUG)}`);
+  }catch(e){
+    show('loading', false);
+    $('notFoundMsg').textContent = e.status === 404 ? "We couldn't find this parking page. Please check the address." : e.message;
+    show('notFound');
+    return;
+  }
+  document.title = `Parking Permit — ${page.name}`;
+  $('placeName').textContent = page.name;
+  $('placeSub').textContent = [page.city, page.state].filter(Boolean).join(', ') + ' · Visitor parking';
+  applyBranding(page.instance_id);
+  show('loading', false);
+
+  // Back from the payment page?
+  const outcome = params.get('payment'), pid = params.get('permit_id'), em = params.get('email');
+  if(outcome && pid && em){
+    try{
+      const p = await api('GET', `/permits/public-lookup?permit_id=${encodeURIComponent(pid)}&email=${encodeURIComponent(em)}`);
+      showDone(p, outcome);
+      history.replaceState(null, '', location.pathname + (PATH_MATCH ? '' : `?c=${SLUG}`));
+      return;
+    }catch(e){ /* fall through to the form */ }
+  }
+  if(!page.is_open){
+    $('closedTitle').textContent = 'Closed';
+    $('closedMsg').textContent = page.closed_message;
+    show('closed');
+    return;
+  }
+  showForm();
+}
+
+['start', 'end'].forEach(id => $(id).addEventListener('change', () => {
+  if(id === 'start' && $('end').value < $('start').value) $('end').value = $('start').value;
+  updateFee();
+}));
+load();
+</script>
+</body>
+</html>

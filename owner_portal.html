@@ -643,7 +643,8 @@ async function openPermitModal(permitId){
 
   try{
     // Each Unit's Instance may have its own Location/Instance permit types, so load per Unit.
-    permitTypes = await api('GET', `/companies/${selectedUnit.company_id}/permit-types?instance_id=${selectedUnit.instance_id}`);
+    permitTypes = await api('GET', `/companies/${selectedUnit.company_id}/permit-types?instance_id=${selectedUnit.instance_id}`)
+    permitTypes = permitTypes.filter(t => t.name !== 'Public');  // Public permits are sold on the public page only
   }catch(e){
     alert(`Couldn't load permit types: ${e.message}`);
     return;

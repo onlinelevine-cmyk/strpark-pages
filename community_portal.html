@@ -70,6 +70,22 @@
   .img-slot{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;}
   .img-preview{width:160px;height:100px;border:1px dashed var(--gray-line);border-radius:8px;display:flex;align-items:center;justify-content:center;background:#FAFAF8;font-size:11.5px;color:var(--gray-mid);overflow:hidden;}
   .img-preview img{max-width:100%;max-height:100%;object-fit:contain;}
+  .month-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:8px 0 16px;}
+  .month-tile{border:1px solid var(--gray-line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;}
+  .month-tile .mname{font-weight:700;font-size:12.5px;}
+  .month-tile .mthumb{height:60px;border-radius:6px;background:#FAFAF8;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray-mid);overflow:hidden;text-align:center;padding:4px;}
+  .month-tile .mthumb img{max-width:100%;max-height:100%;object-fit:contain;}
+  .month-tile .mbtns{display:flex;gap:6px;}
+  .month-tile button{font-family:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;border-radius:6px;border:1px solid var(--gray-line);background:#fff;cursor:pointer;}
+  .month-tile button.rm{color:#B23B3B;}
+  .pub-addr{display:flex;align-items:center;border:1px solid var(--gray-line);border-radius:6px;overflow:hidden;background:#fff;max-width:520px;}
+  .pub-addr span{padding:9px 10px;background:#F7F6F3;color:var(--gray-mid);font-size:13px;white-space:nowrap;border-right:1px solid var(--gray-line);max-width:60%;overflow:hidden;text-overflow:ellipsis;}
+  .pub-addr input{border:none !important;flex:1;min-width:0;font-family:inherit;font-size:14px;padding:9px 10px;}
+  .pub-modes{display:flex;gap:10px;flex-wrap:wrap;}
+  .pub-modes label{text-transform:none !important;letter-spacing:0 !important;color:inherit !important;font-size:13.5px !important;display:flex;gap:8px;align-items:center;border:1.5px solid var(--gray-line);border-radius:8px;padding:9px 12px;cursor:pointer;font-size:13.5px;font-weight:600;}
+  .pub-modes input{width:auto !important;margin:0;}
+  .pub-modes label.sel{border-color:var(--coral);}
+  .pub-links a{color:var(--coral-dark);word-break:break-all;}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
 
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(43,43,43,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:6vh;}
@@ -340,6 +356,31 @@
     </div>
 
     <div class="card">
+      <h3>Public permit page</h3>
+      <p class="hint">A page where visitors who aren't renters buy a parking permit. No unit is needed and there's nothing to print: patrol checks the plate. The price is the <b>Public</b> permit type under Fees &amp; Rules.</p>
+      <div id="pubStatus" style="margin-bottom:12px;"></div>
+      <div class="modal-error" id="pubError"></div>
+      <div class="modal-field"><label for="pubSlug">Page address</label>
+        <div class="pub-addr"><span id="pubAddrPrefix">/p/</span><input id="pubSlug" placeholder="skitrails" maxlength="40" autocomplete="off" spellcheck="false"></div>
+        <div class="hint" style="margin-top:4px;">Lowercase letters, numbers and dashes.</div></div>
+      <div class="modal-field"><label>When is the page open?</label>
+        <div class="pub-modes" id="pubModes">
+          <label><input type="radio" name="pubMode" value="off" onchange="pubModeChanged()"> Off</label>
+          <label><input type="radio" name="pubMode" value="always" onchange="pubModeChanged()"> Always</label>
+          <label><input type="radio" name="pubMode" value="dates" onchange="pubModeChanged()"> Between dates</label>
+        </div></div>
+      <div class="btn-row" id="pubDates" style="display:none;gap:12px;max-width:520px;">
+        <div class="modal-field" style="flex:1;"><label for="pubStart">Opens</label><input type="date" id="pubStart"></div>
+        <div class="modal-field" style="flex:1;"><label for="pubEnd">Closes</label><input type="date" id="pubEnd"></div>
+      </div>
+      <div class="modal-field" style="max-width:520px;"><label for="pubMessage">Message shown while closed</label>
+        <textarea id="pubMessage" rows="2" maxlength="300" style="width:100%;font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--gray-line);border-radius:6px;"></textarea>
+        <div class="hint" style="margin-top:4px;">Leave empty to use the default.</div></div>
+      <button class="modal-btn-primary" id="pubSaveBtn" onclick="savePublicPage()">Save public page</button>
+      <div class="pub-links hint" id="pubLinks" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="card">
       <h3>Branding</h3>
       <p class="hint">JPG or PNG. Your logo appears at the top-left of every page for your community; the permit image is printed behind every permit; the footer appears at the bottom of every page.</p>
       <div class="img-slot">
@@ -353,6 +394,10 @@
           <div class="img-preview" id="footerLogoPreview">None</div>
           <div class="btn-row"><input type="file" accept="image/jpeg,image/png" onchange="uploadImage('footer', this)"><button class="del-btn" onclick="removeImage('footer')">Remove</button></div></div>
       </div>
+      <div class="muted" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:6px 0 4px;">Monthly permit images (optional)</div>
+      <p class="hint">A permit uses the image for the month its start date falls in. Months left empty use the permit image above.</p>
+      <input type="file" id="monthFileInput" accept="image/jpeg,image/png" style="display:none;" onchange="uploadMonthImage(this)">
+      <div class="month-grid" id="monthGrid"></div>
       <div class="modal-field" style="max-width:520px;"><label for="footerTextInput">Footer text</label><input id="footerTextInput" maxlength="300" placeholder="e.g. Pine Ridge HOA &middot; 1 Pine Rd &middot; 530-555-0100"></div>
       <button class="modal-btn-primary" onclick="saveFooterText()">Save footer text</button>
     </div>
@@ -1024,7 +1069,96 @@ async function loadSettings(){
   ]);
   Object.assign(instance, inst); payAccount = acct; payments = pays; company = comp;
   renderSettings();
-  await loadCommunityAdmins();
+  await Promise.all([loadCommunityAdmins(), loadPublicPage(), loadMonthImages()]);
+}
+
+// ---------- Monthly permit images ----------
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+let monthImages = {}, monthUploadTarget = null;
+async function loadMonthImages(){
+  monthImages = {};
+  try{ (await api('GET', `/instances/${instance.id}/permit-background/months`)).forEach(m => monthImages[m.month] = m.permit_background_data_url); }catch(e){}
+  document.getElementById('monthGrid').innerHTML = MONTHS.map((name, i) => {
+    const m = i + 1, url = monthImages[m];
+    return `<div class="month-tile"><div class="mname">${name}</div>
+      <div class="mthumb">${url ? `<img src="${url}" alt="${name} permit image">` : 'Uses the permit image'}</div>
+      <div class="mbtns"><button type="button" onclick="pickMonthImage(${m})">${url ? 'Replace' : 'Upload'}</button>${url ? `<button type="button" class="rm" onclick="removeMonthImage(${m})">Remove</button>` : ''}</div></div>`;
+  }).join('');
+}
+function pickMonthImage(m){ monthUploadTarget = m; const el = document.getElementById('monthFileInput'); el.value = ''; el.click(); }
+function uploadMonthImage(input){
+  const file = input.files[0], m = monthUploadTarget;
+  if(!file || !m) return;
+  if(!/^image\/(jpeg|png)$/.test(file.type)){ alert('Please choose a JPG or PNG image.'); return; }
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try{ await api('PUT', `/instances/${instance.id}/permit-background/months/${m}`, {permit_background_data_url: ev.target.result}); await loadMonthImages(); }
+    catch(e){ alert(e.message); }
+  };
+  reader.readAsDataURL(file);
+}
+async function removeMonthImage(m){
+  if(!confirm(`Remove the ${MONTHS[m - 1]} permit image? Permits starting in ${MONTHS[m - 1]} will use the default permit image.`)) return;
+  try{ await api('DELETE', `/instances/${instance.id}/permit-background/months/${m}`); await loadMonthImages(); }catch(e){ alert(e.message); }
+}
+
+// ---------- Public permit page ----------
+let publicPage = null;
+const PUBLIC_SITE_BASE = new URL('.', location.href).href;
+const PUB_REASONS = {
+  off: 'The page is Off.',
+  out_of_season: 'Today is outside the open dates.',
+  payments_not_connected: 'Connect your payment account (below) to open it.',
+};
+async function loadPublicPage(){
+  try{ publicPage = await api('GET', `/instances/${instance.id}/public-page`); }catch(e){ publicPage = null; }
+  renderPublicPage();
+}
+function pubModeChanged(){
+  const mode = (document.querySelector('input[name="pubMode"]:checked') || {}).value || 'off';
+  document.querySelectorAll('#pubModes label').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+  document.getElementById('pubDates').style.display = mode === 'dates' ? 'flex' : 'none';
+}
+function renderPublicPage(){
+  const p = publicPage;
+  document.getElementById('pubError').style.display = 'none';
+  document.getElementById('pubAddrPrefix').textContent = PUBLIC_SITE_BASE.replace(/^https?:\/\//, '') + 'p/';
+  if(!p){ document.getElementById('pubStatus').innerHTML = '<span class="pill pill-gray">Not available</span>'; return; }
+  document.getElementById('pubSlug').value = p.slug || '';
+  document.querySelectorAll('input[name="pubMode"]').forEach(r => r.checked = r.value === p.mode);
+  document.getElementById('pubStart').value = p.start_date || '';
+  document.getElementById('pubEnd').value = p.end_date || '';
+  document.getElementById('pubMessage').value = p.closed_message || '';
+  document.getElementById('pubMessage').placeholder = p.default_closed_message;
+  pubModeChanged();
+  document.getElementById('pubStatus').innerHTML = p.is_open
+    ? '<span class="pill pill-ok">Open</span> &nbsp;Visitors can buy permits now.'
+    : `<span class="pill pill-warn">Closed</span> &nbsp;${esc(PUB_REASONS[p.closed_reason] || '')}`;
+  const fee = p.fee == null ? null : Number(p.fee);
+  let links = '';
+  if(p.slug){
+    const pretty = `${PUBLIC_SITE_BASE}p/${p.slug}`, direct = `${PUBLIC_SITE_BASE}public_permit.html?c=${p.slug}`;
+    links = `<b>Page links:</b><br><a href="${pretty}" target="_blank" rel="noopener">${pretty}</a><br><a href="${direct}" target="_blank" rel="noopener">${direct}</a><br>`;
+  }
+  links += fee == null ? '' : fee === 0 ? '<b>Price:</b> free (set a fee on the <b>Public</b> permit type under Fees &amp; Rules).' : `<b>Price:</b> $${fee.toFixed(2)}${p.fee_basis === 'daily' ? ' per night' : ' per permit'}, plus the card processing fee.`;
+  document.getElementById('pubLinks').innerHTML = links;
+}
+async function savePublicPage(){
+  const errEl = document.getElementById('pubError'); errEl.style.display = 'none';
+  const body = {
+    slug: document.getElementById('pubSlug').value.trim().toLowerCase(),
+    mode: (document.querySelector('input[name="pubMode"]:checked') || {}).value || 'off',
+    start_date: document.getElementById('pubStart').value || null, end_date: document.getElementById('pubEnd').value || null,
+    closed_message: document.getElementById('pubMessage').value.trim(),
+  };
+  const btn = document.getElementById('pubSaveBtn'); btn.disabled = true;
+  try{
+    publicPage = await api('PUT', `/instances/${instance.id}/public-page`, body);
+    renderPublicPage();
+    // Saving creates the Public permit type, so refresh Fees & Rules.
+    if(typeof loadFees === 'function') await loadFees();
+  }catch(e){ errEl.textContent = e.message; errEl.style.display = 'block'; }
+  finally{ btn.disabled = false; }
 }
 function renderSettings(){
   const i = instance;
