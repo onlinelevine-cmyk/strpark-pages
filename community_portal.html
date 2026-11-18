@@ -773,7 +773,7 @@ function handleReturn(params){
 // ---------- Tabs ----------
 
 function switchTab(tab){
-  document.querySelectorAll('.tab-nav .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-nav .tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('#app > .tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel_' + tab));
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }

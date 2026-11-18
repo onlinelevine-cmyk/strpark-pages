@@ -80,7 +80,8 @@
   .modal-field label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-mid);font-weight:600;}
   .modal-field input,.modal-field select{font-family:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--gray-line);border-radius:6px;}
   .modal-row{display:flex;gap:12px;}
-  .modal-row .modal-field{flex:1;}
+  .modal-row .modal-field{flex:1;min-width:0;}
+  .modal-row .modal-field input, .modal-row .modal-field select{width:100%;box-sizing:border-box;}
   .modal-error{background:#FAE6E6;color:#B23B3B;border-radius:6px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
   .modal-btn-secondary{background:#fff;border:1px solid var(--gray-line);color:var(--gray-ink);padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
