@@ -175,6 +175,9 @@
   .template-link{font-size:12.5px;color:var(--coral-dark);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;}
   .error-box{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:12px 14px;font-size:12.5px;margin-bottom:14px;}
   .error-box ul{margin:6px 0 0;padding-left:20px;}
+  .start-over{margin-top:22px;padding-top:16px;border-top:1px dashed var(--gray-line);display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .start-over p{margin:0;font-size:12.5px;color:var(--gray-mid);flex:1;min-width:220px;}
+  .start-over button{background:#fff;border:1px solid #B23B3B;color:#B23B3B;padding:9px 16px;border-radius:6px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer;}
   .diff-section{margin-bottom:18px;}
   .diff-section h3{font-size:13px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px;}
   .count-pill{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;}
@@ -713,6 +716,10 @@
       <div id="unitsPreviewArea"></div>
       <div id="unitsDiffArea"></div>
       <div class="success-banner" id="unitsSuccessBanner"></div>
+      <div class="start-over">
+        <p><b>Start over:</b> permanently deletes every Unit in the selected Instance, with its Owners and permits. Owner logins not used anywhere else are removed too, so re-importing the same emails sends new invitations.</p>
+        <button type="button" onclick="deleteAllImported('units')">Delete all Units</button>
+      </div>
     </div>
   </div>
 
@@ -730,6 +737,10 @@
       <div id="ownersPreviewArea"></div>
       <div id="ownersDiffArea"></div>
       <div class="success-banner" id="ownersSuccessBanner"></div>
+      <div class="start-over">
+        <p><b>Start over:</b> removes every Owner from every Unit in the selected Instance. Units and permits stay. Owner logins not used anywhere else are removed too, so re-importing the same emails sends new invitations.</p>
+        <button type="button" onclick="deleteAllImported('owners')">Delete all Owners</button>
+      </div>
     </div>
   </div>
 
@@ -4152,6 +4163,43 @@ async function renderImportGrant(){
   if(el) el.innerHTML = '';
   const noAccess = document.getElementById('importNoAccess');
   if(noAccess) noAccess.style.display = 'none';
+}
+
+// Delete every Unit (with Owners and permits), or every Owner, of the selected Instance.
+async function deleteAllImported(what){
+  if(!imp_selectedInstance){ alert('Choose an Instance first.'); return; }
+  const inst = imp_selectedInstance;
+  const path = `/instances/${inst.id}/${what}`;
+  let counts;
+  try{
+    counts = await api('DELETE', path);           // without confirmation: only reports the counts
+  }catch(e){
+    if(e.status !== 409 || !e.data){ alert(e.message); return; }
+    counts = e.data;
+  }
+  if(!counts.requires_confirmation){
+    alert(what === 'units' ? `${inst.name} has no Units to delete.` : `${inst.name} has no Owners to remove.`);
+    return;
+  }
+  const n = (x, one, many) => `${x} ${x === 1 ? one : many}`;
+  const what_text = what === 'units'
+    ? `${n(counts.units, 'Unit', 'Units')}, ${n(counts.owners, 'Owner', 'Owners')} and ${n(counts.permits, 'permit', 'permits')}`
+    : n(counts.owners, 'Owner', 'Owners');
+  const typed = prompt(`This permanently deletes ${what_text} in ${inst.name}. It can't be undone.\n\nType DELETE to confirm.`);
+  if(typed === null) return;
+  if(typed.trim().toUpperCase() !== 'DELETE'){ alert("Nothing was deleted (DELETE wasn't typed)."); return; }
+  try{
+    const r = await api('DELETE', path, {confirmed: true});
+    currentUnits = await api('GET', `/instances/${inst.id}/units`);
+    currentOwnersByUnit = {};
+    resetImportState();
+    const banner = document.getElementById(what + 'SuccessBanner');
+    banner.innerHTML = (what === 'units'
+      ? `Deleted ${n(r.units, 'Unit', 'Units')}, ${n(r.owners, 'Owner', 'Owners')} and ${n(r.permits, 'permit', 'permits')} in ${escHtml(inst.name)}.`
+      : `Removed ${n(r.owners, 'Owner', 'Owners')} in ${escHtml(inst.name)}.`)
+      + (r.logins_removed ? ` ${n(r.logins_removed, 'Owner login was', 'Owner logins were')} removed, so those emails can be invited again.` : '');
+    banner.style.display = 'block';
+  }catch(e){ alert(e.message); }
 }
 
 function resetImportState(){
